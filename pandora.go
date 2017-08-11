@@ -16,7 +16,8 @@ type Factoid struct {
 }
 
 type DataClient interface {
-	FactoidService() FactoidService
+	FactoidService
+	RawFactoidService
 }
 
 type RawFactoidService interface {
@@ -32,6 +33,5 @@ type FactoidService interface {
 
 // Interpolator replaces values in a string, based on a map.
 type Interpolator interface {
-	SetMap(lookup map[string]interface{}) error
-	Interpolate(template string) (string, error)
+	Interpolate(template string, lookup map[string]interface{}) (string, error)
 }
