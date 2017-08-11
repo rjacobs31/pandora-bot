@@ -57,6 +57,12 @@ var interpolateCases = []interpolateCase{
 		ExpectedOk:     nil,
 	},
 	interpolateCase{
+		Vars:           nil,
+		String:         "\\n\\r\\t\\$\\\\",
+		ExpectedString: "\n\r\t$\\",
+		ExpectedOk:     nil,
+	},
+	interpolateCase{
 		Vars: map[string]interface{}{
 			"name": func() string {
 				return "George"
@@ -71,9 +77,7 @@ var interpolateCases = []interpolateCase{
 			"name": func() string {
 				return "George"
 			},
-			"place": func() string {
-				return "the restaurant"
-			},
+			"place": "the restaurant",
 			"object": func() string {
 				return "steak"
 			},
@@ -107,8 +111,7 @@ var interpolateCases = []interpolateCase{
 func TestInterpolate(t *testing.T) {
 	interp := &interpolate.Interpolator{}
 	for i, vals := range interpolateCases {
-		interp.SetMap(vals.Vars)
-		v, ok := interp.Interpolate(vals.String)
+		v, ok := interp.Interpolate(vals.String, vals.Vars)
 		if v != vals.ExpectedString || ok != vals.ExpectedOk {
 			t.Errorf("Test %2d: Expected %q (%q), got %q (%q)", i, vals.ExpectedString, vals.ExpectedOk, v, ok)
 		}

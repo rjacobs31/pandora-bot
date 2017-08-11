@@ -2,6 +2,7 @@ package interpolate
 
 import (
 	"bytes"
+	"fmt"
 
 	pandora ".."
 )
@@ -34,39 +35,31 @@ var _ pandora.Interpolator = &Interpolator{}
 
 // Interpolator takes a lookup map to find replacements for interpolations
 // of the form `${key}`.
-type Interpolator struct {
-	lookup map[string]interface{}
-}
+type Interpolator struct{}
 
-// SetMap sets the lookup map for the interpolator.
-func (interp *Interpolator) SetMap(lookup map[string]interface{}) error {
-	interp.lookup = lookup
-	return nil
-}
-
-func (interp *Interpolator) fetchValue(key string) (value string) {
-	if interp.lookup == nil {
+func fetchValue(lookup map[string]interface{}, key string) (value string) {
+	if lookup == nil {
 		return
 	}
-	val, ok := interp.lookup[key]
+	val, ok := lookup[key]
 	if !ok {
 		return
 	}
 
 	switch v := val.(type) {
-	case int:
-		value = string(v)
 	case string:
 		value = v
 	case func() string:
 		value = v()
+	case fmt.Stringer:
+		value = v.String()
 	}
 	return
 }
 
 // Interpolate replaces occurrences of `${key}` with the value of `key` in the
 // lookup map.
-func (interp *Interpolator) Interpolate(str string) (string, error) {
+func (interp *Interpolator) Interpolate(str string, lookup map[string]interface{}) (string, error) {
 	var (
 		b     bytes.Buffer
 		k     bytes.Buffer
@@ -80,7 +73,7 @@ func (interp *Interpolator) Interpolate(str string) (string, error) {
 				state = stateNone
 				key := k.String()
 				k.Reset()
-				b.WriteString(interp.fetchValue(key))
+				b.WriteString(fetchValue(lookup, key))
 			} else {
 				k.WriteRune(c)
 			}
