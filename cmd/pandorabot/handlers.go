@@ -84,15 +84,15 @@ func insertHandler(s *discordgo.Session, commandType InsertCommandType, m *disco
 	case IsReply:
 		trigger = str[:idxs[0]]
 		response = strings.TrimSpace(str[idxs[1]:])
-		err = Client.FactoidService().PutResponse(trigger, response)
+		err = Client.PutResponse(trigger, response)
 	case ExplicitIs:
 		trigger = str[:idxs[0]]
 		response = strings.TrimSpace(str[:idxs[0]] + " is " + str[idxs[1]:])
-		err = Client.FactoidService().PutResponse(trigger, response)
+		err = Client.PutResponse(trigger, response)
 	case ImplicitIs:
 		trigger = str[:idxs[0]]
 		response = strings.TrimSpace(str[:])
-		err = Client.FactoidService().PutResponse(trigger, response)
+		err = Client.PutResponse(trigger, response)
 	default:
 		return
 	}
@@ -109,7 +109,7 @@ func insertHandler(s *discordgo.Session, commandType InsertCommandType, m *disco
 
 func responseHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	trigger := m.Content[:]
-	response, err := Client.FactoidService().GetRandomResponse(trigger)
+	response, err := Client.GetRandomResponse(trigger)
 	var someone string
 	interpolations := map[string]interface{}{
 		"who": func() string {
@@ -140,8 +140,7 @@ func responseHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if err == nil && response != "" {
 		if response != "" {
 			interp := &interpolate.Interpolator{}
-			interp.SetMap(interpolations)
-			result, _ := interp.Interpolate(response)
+			result, _ := interp.Interpolate(response, interpolations)
 			if err != nil {
 				fmt.Println(err)
 				return
