@@ -20,7 +20,12 @@ var _ pandora.FactoidService = &FactoidService{}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
-	client *Client
+	db *bolt.DB
+}
+
+// RawFactoidService BoltDB implementation of FactoidService interface.
+type RawFactoidService struct {
+	db *bolt.DB
 }
 
 // MarshallFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -122,8 +127,8 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 }
 
 // GetFactoid Fetches factoid with a given trigger from BoltDB.
-func (s *FactoidService) GetFactoid(trigger string) (*pandora.Factoid, error) {
-	tx, err := s.client.db.Begin(false)
+func (s *RawFactoidService) GetFactoid(trigger string) (*pandora.Factoid, error) {
+	tx, err := s.db.Begin(false)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +144,8 @@ func (s *FactoidService) GetFactoid(trigger string) (*pandora.Factoid, error) {
 }
 
 // PutFactoid Inserts factoid with a given trigger into BoltDB.
-func (s *FactoidService) PutFactoid(trigger string, pf *pandora.Factoid) error {
-	tx, err := s.client.db.Begin(true)
+func (s *RawFactoidService) PutFactoid(trigger string, pf *pandora.Factoid) error {
+	tx, err := s.db.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -159,8 +164,8 @@ func (s *FactoidService) PutFactoid(trigger string, pf *pandora.Factoid) error {
 }
 
 // DeleteFactoid Deletes a factoid with a given trigger from BoltDB.
-func (s *FactoidService) DeleteFactoid(trigger string) error {
-	tx, err := s.client.db.Begin(true)
+func (s *RawFactoidService) DeleteFactoid(trigger string) error {
+	tx, err := s.db.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -193,7 +198,7 @@ func CleanTrigger(trigger string) string {
 
 // PutResponse insert given response under trigger
 func (s *FactoidService) PutResponse(trigger, response string) error {
-	tx, err := s.client.db.Begin(true)
+	tx, err := s.db.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -245,62 +250,9 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 	return tx.Commit()
 }
 
-// Put insert given response under trigger
-func Put(db *bolt.DB, trigger, response string) error {
-	trigger = CleanTrigger(trigger)
-
-	return db.Update(func(tx *bolt.Tx) error {
-		var f internal.Factoid
-		b := tx.Bucket([]byte("factoids"))
-
-		now := ptypes.TimestampNow()
-		if buf := b.Get([]byte(trigger)); buf == nil || len(buf) == 0 {
-			f = internal.Factoid{
-				DateCreated: now,
-				DateEdited:  now,
-				Protected:   false,
-				Responses:   []*internal.FactoidResponse{},
-			}
-		} else {
-			if err := proto.Unmarshal(buf, &f); err != nil {
-				return err
-			}
-			f.DateEdited = now
-		}
-
-		sort.Slice(f.Responses[:], func(i int, j int) bool {
-			return f.Responses[i].Response < f.Responses[j].Response
-		})
-		i := sort.Search(len(f.Responses), func(i int) bool {
-			return f.Responses[i].Response >= response
-		})
-		r := &internal.FactoidResponse{
-			DateCreated: now,
-			DateEdited:  now,
-			Response:    *proto.String(response),
-		}
-		if i < len(f.Responses) {
-			if f.Responses[i].Response == response {
-				return FactoidAlreadyExistsError(response)
-			}
-			f.Responses = append(f.Responses, nil)
-			copy(f.Responses[i+1:], f.Responses[i:])
-			f.Responses[i] = r
-		} else {
-			f.Responses = append(f.Responses, r)
-		}
-
-		enc, err := proto.Marshal(&f)
-		if err != nil {
-			return err
-		}
-		return b.Put([]byte(trigger), enc)
-	})
-}
-
 // GetRandomResponse fetch random response
 func (s *FactoidService) GetRandomResponse(trigger string) (string, error) {
-	tx, err := s.client.db.Begin(false)
+	tx, err := s.db.Begin(false)
 	if err != nil {
 		return "", err
 	}
@@ -317,25 +269,4 @@ func (s *FactoidService) GetRandomResponse(trigger string) (string, error) {
 		return r.Response, tx.Commit()
 	}
 	return "", nil
-}
-
-// GetRandom fetch random response
-func GetRandom(db *bolt.DB, trigger string) (*internal.FactoidResponse, error) {
-	var r *internal.FactoidResponse
-
-	trigger = CleanTrigger(trigger)
-	err := db.View(func(tx *bolt.Tx) error {
-		var f internal.Factoid
-		b := tx.Bucket([]byte("factoids"))
-		buf := b.Get([]byte(trigger))
-		if err := proto.Unmarshal(buf, &f); err != nil {
-			return err
-		}
-		if len(f.Responses) > 0 {
-			r = f.Responses[rand.Intn(len(f.Responses))]
-		}
-		return nil
-	})
-
-	return r, err
 }

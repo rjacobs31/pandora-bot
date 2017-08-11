@@ -15,7 +15,8 @@ type Client struct {
 	Path string
 	Now  func() time.Time
 
-	factoidService pandora.FactoidService
+	pandora.FactoidService
+	pandora.RawFactoidService
 
 	db *bolt.DB
 }
@@ -23,9 +24,8 @@ type Client struct {
 // NewClient creates a new BoltDB client.
 func NewClient(path string) *Client {
 	return &Client{
-		Path:           path,
-		Now:            time.Now,
-		factoidService: &FactoidService{},
+		Path: path,
+		Now:  time.Now,
 	}
 }
 
@@ -57,9 +57,4 @@ func (c *Client) Close() error {
 		return c.db.Close()
 	}
 	return nil
-}
-
-// FactoidService Initiates a FactoidService with the client.
-func (c *Client) FactoidService() pandora.FactoidService {
-	return c.factoidService
 }
