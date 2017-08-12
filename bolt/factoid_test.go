@@ -68,7 +68,7 @@ func TestFactoidService(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	r, err := c.GetRandomResponse("this")
+	r, err := c.RandomResponse("this")
 	if err != nil {
 		t.Error(err)
 		return

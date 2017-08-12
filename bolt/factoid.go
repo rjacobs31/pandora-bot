@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"sort"
 	"strings"
-	"time"
 	"unicode"
 
 	"github.com/boltdb/bolt"
@@ -29,8 +28,7 @@ type FactoidService struct {
 
 // RawFactoidService BoltDB implementation of FactoidService interface.
 type RawFactoidService struct {
-	DB  *bolt.DB
-	Now func() *time.Time
+	DB *bolt.DB
 }
 
 // MarshallFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -132,7 +130,7 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 }
 
 // GetFactoid Fetches factoid with a given trigger from BoltDB.
-func (s *RawFactoidService) GetFactoid(trigger string) (*pandora.Factoid, error) {
+func (s *RawFactoidService) Factoid(trigger string) (*pandora.Factoid, error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return nil, err
@@ -212,6 +210,7 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 	trigger = CleanTrigger(trigger)
 	var f internal.Factoid
 	b := tx.Bucket([]byte("factoids"))
+
 	if s.Now == nil {
 		s.Now = ptypes.TimestampNow
 	}
@@ -259,7 +258,7 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 }
 
 // GetRandomResponse fetch random response
-func (s *FactoidService) GetRandomResponse(trigger string) (string, error) {
+func (s *FactoidService) RandomResponse(trigger string) (string, error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return "", err

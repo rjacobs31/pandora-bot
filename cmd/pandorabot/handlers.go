@@ -109,7 +109,7 @@ func insertHandler(s *discordgo.Session, commandType InsertCommandType, m *disco
 
 func responseHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	trigger := m.Content[:]
-	response, err := Client.GetRandomResponse(trigger)
+	response, err := Client.RandomResponse(trigger)
 	var someone string
 	interpolations := map[string]interface{}{
 		"who": func() string {

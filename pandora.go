@@ -21,14 +21,14 @@ type DataClient interface {
 }
 
 type RawFactoidService interface {
-	GetFactoid(trigger string) (*Factoid, error)
+	Factoid(trigger string) (*Factoid, error)
 	PutFactoid(trigger string, f *Factoid) error
 	DeleteFactoid(trigger string) error
 }
 
 type FactoidService interface {
 	PutResponse(trigger, response string) error
-	GetRandomResponse(trigger string) (string, error)
+	RandomResponse(trigger string) (string, error)
 }
 
 // Interpolator replaces values in a string, based on a map.
