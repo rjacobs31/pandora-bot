@@ -17,15 +17,16 @@ import (
 )
 
 var _ pandora.FactoidService = &FactoidService{}
+var _ pandora.RawFactoidService = &RawFactoidService{}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
-	db *bolt.DB
+	DB *bolt.DB
 }
 
 // RawFactoidService BoltDB implementation of FactoidService interface.
 type RawFactoidService struct {
-	db *bolt.DB
+	DB *bolt.DB
 }
 
 // MarshallFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -128,7 +129,7 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 
 // GetFactoid Fetches factoid with a given trigger from BoltDB.
 func (s *RawFactoidService) GetFactoid(trigger string) (*pandora.Factoid, error) {
-	tx, err := s.db.Begin(false)
+	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return nil, err
 	}
@@ -145,7 +146,7 @@ func (s *RawFactoidService) GetFactoid(trigger string) (*pandora.Factoid, error)
 
 // PutFactoid Inserts factoid with a given trigger into BoltDB.
 func (s *RawFactoidService) PutFactoid(trigger string, pf *pandora.Factoid) error {
-	tx, err := s.db.Begin(true)
+	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -165,7 +166,7 @@ func (s *RawFactoidService) PutFactoid(trigger string, pf *pandora.Factoid) erro
 
 // DeleteFactoid Deletes a factoid with a given trigger from BoltDB.
 func (s *RawFactoidService) DeleteFactoid(trigger string) error {
-	tx, err := s.db.Begin(true)
+	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -198,7 +199,7 @@ func CleanTrigger(trigger string) string {
 
 // PutResponse insert given response under trigger
 func (s *FactoidService) PutResponse(trigger, response string) error {
-	tx, err := s.db.Begin(true)
+	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -252,7 +253,7 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 
 // GetRandomResponse fetch random response
 func (s *FactoidService) GetRandomResponse(trigger string) (string, error) {
-	tx, err := s.db.Begin(false)
+	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return "", err
 	}
@@ -266,7 +267,7 @@ func (s *FactoidService) GetRandomResponse(trigger string) (string, error) {
 		return "", err
 	} else if len(f.Responses) > 0 {
 		r := f.Responses[rand.Intn(len(f.Responses))]
-		return r.Response, tx.Commit()
+		return r.Response, nil
 	}
 	return "", nil
 }

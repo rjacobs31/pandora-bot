@@ -14,11 +14,10 @@ var _ pandora.DataClient = &Client{}
 type Client struct {
 	Path string
 	Now  func() time.Time
+	DB   *bolt.DB
 
 	pandora.FactoidService
 	pandora.RawFactoidService
-
-	db *bolt.DB
 }
 
 // NewClient creates a new BoltDB client.
@@ -35,10 +34,12 @@ func (c *Client) Open() error {
 	if err != nil {
 		return err
 	}
-	c.db = db
+	c.DB = db
+	c.FactoidService = &FactoidService{DB: db}
+	c.RawFactoidService = &RawFactoidService{DB: db}
 
 	// Initialize top-level buckets.
-	tx, err := c.db.Begin(true)
+	tx, err := c.DB.Begin(true)
 	if err != nil {
 		return err
 	}
@@ -53,8 +54,8 @@ func (c *Client) Open() error {
 
 // Close Closes a connection to BoltDB when done.
 func (c *Client) Close() error {
-	if c.db != nil {
-		return c.db.Close()
+	if c.DB != nil {
+		return c.DB.Close()
 	}
 	return nil
 }
