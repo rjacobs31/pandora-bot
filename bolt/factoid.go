@@ -6,11 +6,13 @@ import (
 	"math/rand"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/timestamp"
 
 	pandora ".."
 	"./internal"
@@ -21,12 +23,14 @@ var _ pandora.RawFactoidService = &RawFactoidService{}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
-	DB *bolt.DB
+	DB  *bolt.DB
+	Now func() *timestamp.Timestamp
 }
 
 // RawFactoidService BoltDB implementation of FactoidService interface.
 type RawFactoidService struct {
-	DB *bolt.DB
+	DB  *bolt.DB
+	Now func() *time.Time
 }
 
 // MarshallFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -208,7 +212,10 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 	trigger = CleanTrigger(trigger)
 	var f internal.Factoid
 	b := tx.Bucket([]byte("factoids"))
-	now := ptypes.TimestampNow()
+	if s.Now == nil {
+		s.Now = ptypes.TimestampNow
+	}
+	now := s.Now()
 	if buf := b.Get([]byte(trigger)); buf == nil || len(buf) == 0 {
 		f = internal.Factoid{
 			DateCreated: now,
