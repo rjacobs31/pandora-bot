@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,7 +11,7 @@ import (
 	"github.com/namsral/flag"
 
 	pandora ".."
-	bolt "../bolt"
+	"./views"
 )
 
 // Variables used for command line parameters
@@ -27,13 +26,20 @@ func init() {
 	flag.Parse()
 }
 
+var (
+	homeView     *views.View
+	notFoundView *views.View
+)
+
 func main() {
-	c := bolt.NewClient(DBPath)
-	if err := c.Open(); err != nil {
-		log.Fatal(err)
-	}
-	defer c.Close()
-	Client = c
+	// c := bolt.NewClient(DBPath)
+	// if err := c.Open(); err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer c.Close()
+	// Client = c
+	notFoundView = views.New("base", "views/notfound.gohtml")
+	homeView = views.New("base", "views/home.gohtml")
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(notFound)
@@ -49,10 +55,16 @@ func main() {
 
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, "Sorry, but I don't know that page. :(")
+	err := notFoundView.Render(w, nil)
+	if err != nil {
+		fmt.Println("Error: %v", err)
+	}
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, "<h1>Welcome to my website!</h1>")
+	err := homeView.Render(w, nil)
+	if err != nil {
+		fmt.Println("Error: %v", err)
+	}
 }
