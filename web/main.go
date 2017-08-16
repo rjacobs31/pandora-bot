@@ -44,13 +44,19 @@ func main() {
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	r.HandleFunc("/", home)
-	http.ListenAndServe(":3000", r)
+
+	s := &http.Server{
+		Addr:    ":3000",
+		Handler: r,
+	}
+	go s.ListenAndServe()
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Web server is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
+	s.Close()
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
