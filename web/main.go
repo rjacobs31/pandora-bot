@@ -27,8 +27,9 @@ func init() {
 }
 
 var (
-	homeView     *views.View
 	notFoundView *views.View
+	homeView     *views.View
+	factoidsView *views.View
 )
 
 func main() {
@@ -40,10 +41,12 @@ func main() {
 	// Client = c
 	notFoundView = views.New("base", "views/notfound.gohtml")
 	homeView = views.New("base", "views/home.gohtml")
+	factoidsView = views.New("base", "views/factoids.gohtml")
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	r.HandleFunc("/", home)
+	r.HandleFunc("/factoids", factoids)
 
 	s := &http.Server{
 		Addr:    ":3000",
@@ -70,6 +73,14 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	err := homeView.Render(w, nil)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+func factoids(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	err := factoidsView.Render(w, nil)
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}

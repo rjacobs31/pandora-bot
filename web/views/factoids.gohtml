@@ -1,0 +1,27 @@
+{{define "yield"}}
+<h1>Factoids</h1>
+{{template "table" .}}
+{{end}}
+
+{{define "table"}}
+<table class="table table-hover">
+  <tr>
+    <th>Link</th>
+    <th>Created</th>
+    <th>Last edited</th>
+    <th>Trigger</th>
+    <th>Number of responses</th>
+  </tr>
+  {{if .Rows}}
+    {{range .Rows}}
+      <tr>
+        <td><a href="/factoids/{{.Id}}">Edit</a></td>
+        <td>{{.DateCreated}}</td>
+        <td>{{.DateEdited}}</td>
+        <td>{{.Trigger}}</td>
+        <td>{{.NumResponses}}</td>
+      </tr>
+    {{end}}
+  {{end}}
+</table>
+{{end}}
