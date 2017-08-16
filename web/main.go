@@ -50,13 +50,13 @@ func main() {
 		Handler: r,
 	}
 	go s.ListenAndServe()
+	defer s.Close()
 
 	// Wait here until CTRL-C or other term signal is received.
 	fmt.Println("Web server is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-	s.Close()
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
