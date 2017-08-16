@@ -63,7 +63,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	err := notFoundView.Render(w, nil)
 	if err != nil {
-		fmt.Println("Error: %v", err)
+		fmt.Println("Error: ", err)
 	}
 }
 
@@ -71,6 +71,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	err := homeView.Render(w, nil)
 	if err != nil {
-		fmt.Println("Error: %v", err)
+		fmt.Println("Error: ", err)
 	}
 }
