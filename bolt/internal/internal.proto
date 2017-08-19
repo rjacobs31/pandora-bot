@@ -13,4 +13,5 @@ message Factoid {
   google.protobuf.Timestamp DateEdited = 2;
   bool Protected = 3;
   repeated FactoidResponse Responses = 4;
+  string Trigger = 5;
 }

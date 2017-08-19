@@ -56,6 +56,7 @@ func MarshallFactoid(pf *pandora.Factoid) ([]byte, error) {
 		DateEdited:  dateEdited,
 		Protected:   pf.Protected,
 		Responses:   responses,
+		Trigger:     pf.Trigger,
 	}
 	return proto.Marshal(f)
 }
@@ -91,6 +92,7 @@ func UnmarshalFactoid(b []byte) (*pandora.Factoid, error) {
 		DateEdited:  dateEdited,
 		Protected:   pf.Protected,
 		Responses:   responses,
+		Trigger:     pf.Trigger,
 	}
 	return f, nil
 }
@@ -129,7 +131,7 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 	return f, nil
 }
 
-// GetFactoid Fetches factoid with a given trigger from BoltDB.
+// Factoid Fetches factoid with a given trigger from BoltDB.
 func (s *RawFactoidService) Factoid(trigger string) (*pandora.Factoid, error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
@@ -221,6 +223,7 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 			DateEdited:  now,
 			Protected:   false,
 			Responses:   []*internal.FactoidResponse{},
+			Trigger:     trigger,
 		}
 	} else if err := proto.Unmarshal(buf, &f); err != nil {
 		return err
@@ -257,7 +260,7 @@ func (s *FactoidService) PutResponse(trigger, response string) error {
 	return tx.Commit()
 }
 
-// GetRandomResponse fetch random response
+// RandomResponse fetch random response
 func (s *FactoidService) RandomResponse(trigger string) (string, error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {

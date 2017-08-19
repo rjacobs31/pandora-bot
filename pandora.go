@@ -13,6 +13,7 @@ type Factoid struct {
 	DateEdited  time.Time
 	Protected   bool
 	Responses   []*FactoidResponse
+	Trigger     string
 }
 
 type DataClient interface {
