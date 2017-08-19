@@ -72,7 +72,7 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 
 func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	err := homeView.Render(w, nil)
+	err := homeView.Render(w, struct{ ActivePage string }{ActivePage: "home"})
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -80,7 +80,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func factoids(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	err := factoidsView.Render(w, nil)
+	err := factoidsView.Render(w, struct{ ActivePage string }{ActivePage: "factoids"})
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
