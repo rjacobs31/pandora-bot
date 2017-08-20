@@ -11,6 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	bolt_internal "."
+	pandora ".."
 	"./internal"
 )
 
@@ -78,6 +79,49 @@ func TestFactoidService(t *testing.T) {
 		return
 	} else if r != "this is a test" {
 		t.Error("unexpected random response")
+		return
+	}
+}
+
+func TestRawFactoidService_InsertDelete(t *testing.T) {
+	c := NewClient()
+	defer CloseClient(c)
+
+	_, err := c.Factoid(1)
+	if err == nil || err.Error() != "factoid not exist" {
+		t.Error(err)
+		return
+	}
+
+	id, err := c.InsertFactoid(&pandora.Factoid{
+		Responses: []*pandora.FactoidResponse{
+			&pandora.FactoidResponse{Response: "this is a test"},
+		},
+		Trigger: "this",
+	})
+	if err != nil {
+		t.Error(err)
+	} else if id == 0 {
+		t.Error("Expected ID to be set, got 0")
+	}
+
+	f, err := c.Factoid(id)
+	if err != nil {
+		t.Error(err)
+	} else if f.Trigger != "this" {
+		t.Errorf("Expected trigger: \"this\", got %q", f.Trigger)
+	} else if len(f.Responses) != 1 {
+		t.Errorf("Expected response count: 1, got %d", len(f.Responses))
+	} else if f.Responses[0].Response != "this is a test" {
+		t.Errorf("Expected response: \"this is a test\", got %q", f.Responses[0].Response)
+	}
+	err = c.DeleteFactoid(id)
+	if err != nil {
+		t.Error(err)
+	}
+	f, err = c.Factoid(id)
+	if err == nil || err.Error() != "factoid not exist" {
+		t.Error(err)
 		return
 	}
 }
