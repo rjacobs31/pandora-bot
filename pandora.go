@@ -9,6 +9,7 @@ type FactoidResponse struct {
 }
 
 type Factoid struct {
+	ID          uint64
 	DateCreated time.Time
 	DateEdited  time.Time
 	Protected   bool
@@ -22,9 +23,12 @@ type DataClient interface {
 }
 
 type RawFactoidService interface {
-	Factoid(trigger string) (*Factoid, error)
-	PutFactoid(trigger string, f *Factoid) error
-	DeleteFactoid(trigger string) error
+	Factoid(id uint64) (*Factoid, error)
+	FactoidByTrigger(trigger string) (*Factoid, error)
+	InsertFactoid(f *Factoid) (id uint64, err error)
+	PutFactoid(id uint64, f *Factoid) error
+	PutFactoidByTrigger(trigger string, f *Factoid) error
+	DeleteFactoid(id uint64) error
 }
 
 type FactoidService interface {

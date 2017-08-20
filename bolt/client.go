@@ -1,6 +1,7 @@
 package bolt
 
 import (
+	"encoding/binary"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -45,7 +46,11 @@ func (c *Client) Open() error {
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.CreateBucketIfNotExists([]byte("factoids")); err != nil {
+	if _, err := tx.CreateBucketIfNotExists([]byte(factBucket)); err != nil {
+		return err
+	}
+
+	if _, err := tx.CreateBucketIfNotExists([]byte(factTrigBucket)); err != nil {
 		return err
 	}
 
@@ -58,4 +63,11 @@ func (c *Client) Close() error {
 		return c.DB.Close()
 	}
 	return nil
+}
+
+// itob returns an 8-byte big endian representation of v.
+func itob(v uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
 }

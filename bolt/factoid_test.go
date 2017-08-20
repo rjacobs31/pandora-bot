@@ -51,7 +51,11 @@ func TestFactoidService(t *testing.T) {
 	err := c.DB.View(func(tx *bolt.Tx) (err error) {
 		if b := tx.Bucket([]byte("factoids")); b == nil {
 			return errors.New("bucket not exist")
-		} else if buf := b.Get([]byte("this")); buf == nil || len(buf) < 1 {
+		} else if bt := tx.Bucket([]byte("factoid_trigger_index")); bt == nil {
+			return errors.New("bucket not exist")
+		} else if id := bt.Get([]byte("this")); id == nil || len(id) < 1 {
+			return errors.New("index not exist")
+		} else if buf := b.Get(id); buf == nil || len(buf) < 1 {
 			return errors.New("value not exist")
 		} else {
 			f := &internal.Factoid{}

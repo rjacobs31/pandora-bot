@@ -14,4 +14,5 @@ message Factoid {
   bool Protected = 3;
   repeated FactoidResponse Responses = 4;
   string Trigger = 5;
+  uint64 ID = 6;
 }
