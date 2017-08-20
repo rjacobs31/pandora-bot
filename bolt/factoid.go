@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/boltdb/bolt"
@@ -36,7 +37,8 @@ type FactoidService struct {
 
 // RawFactoidService BoltDB implementation of FactoidService interface.
 type RawFactoidService struct {
-	DB *bolt.DB
+	DB  *bolt.DB
+	Now func() time.Time
 }
 
 // MarshallFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -231,6 +233,13 @@ func (s *RawFactoidService) InsertFactoid(pf *pandora.Factoid) (id uint64, err e
 	id, _ = bt.NextSequence()
 	pf.ID = id
 
+	if s.Now == nil {
+		s.Now = time.Now
+	}
+	now := s.Now()
+	pf.DateCreated = now
+	pf.DateEdited = now
+
 	buf, err := MarshallFactoid(pf)
 	if err != nil {
 		return
@@ -261,6 +270,12 @@ func (s *RawFactoidService) PutFactoid(id uint64, pf *pandora.Factoid) error {
 		return pf.Responses[i].Response < pf.Responses[j].Response
 	})
 
+	if s.Now == nil {
+		s.Now = time.Now
+	}
+	now := s.Now()
+	pf.DateEdited = now
+
 	b := tx.Bucket([]byte(factBucket))
 	bt := tx.Bucket([]byte(factTrigBucket))
 	buf, err := MarshallFactoid(pf)
@@ -288,6 +303,12 @@ func (s *RawFactoidService) PutFactoidByTrigger(trigger string, pf *pandora.Fact
 		return err
 	}
 	defer tx.Rollback()
+
+	if s.Now == nil {
+		s.Now = time.Now
+	}
+	now := s.Now()
+	pf.DateEdited = now
 
 	sort.Slice(pf.Responses[:], func(i int, j int) bool {
 		return pf.Responses[i].Response < pf.Responses[j].Response
