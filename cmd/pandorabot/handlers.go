@@ -110,6 +110,10 @@ func insertHandler(s *discordgo.Session, commandType InsertCommandType, m *disco
 func responseHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 	trigger := m.Content[:]
 	response, err := Client.RandomResponse(trigger)
+	if err != nil && err.Error() != "no factoid exists" {
+		fmt.Println(err)
+		return
+	}
 	var someone string
 	interpolations := map[string]interface{}{
 		"who": func() string {
@@ -147,7 +151,5 @@ func responseHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 			s.ChannelMessageSend(m.ChannelID, result)
 		}
-	} else if err != nil {
-		fmt.Println(err)
 	}
 }
