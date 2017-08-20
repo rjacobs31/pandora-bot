@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/namsral/flag"
@@ -53,7 +54,8 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	r.HandleFunc("/", home)
 	r.HandleFunc("/factoids", factoids)
-	r.HandleFunc("/factoids/{id:[0-9]+}/edit", factoidsEdit)
+	r.HandleFunc("/factoids/{id:[0-9]+}/edit", factoidsEdit).Methods("GET")
+	r.HandleFunc("/factoids/{id:[0-9]+}/edit", factoidsEditPost).Methods("POST")
 
 	s := &http.Server{
 		Addr:    ":3000",
@@ -104,22 +106,81 @@ func factoids(w http.ResponseWriter, r *http.Request) {
 }
 
 func factoidsEdit(w http.ResponseWriter, r *http.Request) {
-	var f *pandora.Factoid
+	var (
+		err error
+		f   *pandora.Factoid
+		id  uint64
+	)
 	vars := mux.Vars(r)
-	strID, ok := vars["id"]
-
-	if id, err := strconv.ParseUint(strID, 10, 64); !ok || err != nil {
-		return
-	} else if f, err = Client.Factoid(id); err != nil {
-		return
+	if strID, ok := vars["id"]; ok {
+		id, err = strconv.ParseUint(strID, 10, 64)
+		if err == nil {
+			f, _ = Client.Factoid(id)
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	err := factoidsEditView.Render(w, struct {
+	err = factoidsEditView.Render(w, struct {
 		ActivePage string
 		Factoid    *pandora.Factoid
 	}{
 		ActivePage: "factoids",
+		Factoid:    f,
+	})
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+func factoidsEditPost(w http.ResponseWriter, r *http.Request) {
+	var (
+		err error
+		f   *pandora.Factoid
+		id  uint64
+	)
+	vars := mux.Vars(r)
+	if strID, ok := vars["id"]; ok {
+		id, err = strconv.ParseUint(strID, 10, 64)
+		if err == nil {
+			f, _ = Client.Factoid(id)
+		}
+	}
+
+	if f != nil {
+		r.ParseMultipartForm(10 * 1024)
+
+		if trig := r.PostFormValue("trigger"); trig != "" && trig != f.Trigger {
+			f.Trigger = trig
+			f.DateEdited = time.Now()
+		}
+
+		i := 0
+		for {
+			v := r.PostFormValue("res_" + strconv.Itoa(i) + "_response")
+			if v == "" || i >= len(f.Responses) {
+				break
+			} else if v != f.Responses[i].Response {
+				f.Responses[i].Response = v
+				f.Responses[i].DateEdited = time.Now()
+			}
+			i++
+		}
+
+		err = Client.PutFactoid(id, f)
+	}
+
+	if err == nil {
+		http.Redirect(w, r, "/factoids", http.StatusFound)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html")
+	factoidsEditView.Render(w, struct {
+		ActivePage string
+		Error      error
+		Factoid    *pandora.Factoid
+	}{
+		ActivePage: "factoids",
+		Error:      err,
 		Factoid:    f,
 	})
 	if err != nil {
