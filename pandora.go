@@ -25,6 +25,7 @@ type DataClient interface {
 type RawFactoidService interface {
 	Factoid(id uint64) (*Factoid, error)
 	FactoidByTrigger(trigger string) (*Factoid, error)
+	FactoidRange(fromID, count uint64) (factoids []*Factoid, err error)
 	InsertFactoid(f *Factoid) (id uint64, err error)
 	PutFactoid(id uint64, f *Factoid) error
 	PutFactoidByTrigger(trigger string, f *Factoid) error

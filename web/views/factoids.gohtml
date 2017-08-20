@@ -12,14 +12,14 @@
     <th>Trigger</th>
     <th>Number of responses</th>
   </tr>
-  {{if .Rows}}
-    {{range .Rows}}
+  {{if .Factoids}}
+    {{range .Factoids}}
       <tr>
-        <td><a href="/factoids/{{.Id}}">Edit</a></td>
+        <td><a href="/factoids/{{.ID}}">Edit</a></td>
         <td>{{.DateCreated}}</td>
         <td>{{.DateEdited}}</td>
         <td>{{.Trigger}}</td>
-        <td>{{.NumResponses}}</td>
+        <td>{{len .Responses}}</td>
       </tr>
     {{end}}
   {{end}}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -11,6 +12,7 @@ import (
 	"github.com/namsral/flag"
 
 	pandora ".."
+	"../bolt"
 	"./views"
 )
 
@@ -33,12 +35,13 @@ var (
 )
 
 func main() {
-	// c := bolt.NewClient(DBPath)
-	// if err := c.Open(); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer c.Close()
-	// Client = c
+	c := bolt.NewClient(DBPath)
+	if err := c.Open(); err != nil {
+		log.Fatal(err)
+	}
+	defer c.Close()
+	Client = c
+
 	notFoundView = views.New("base", "views/notfound.gohtml")
 	homeView = views.New("base", "views/home.gohtml")
 	factoidsView = views.New("base", "views/factoids.gohtml")
@@ -64,7 +67,7 @@ func main() {
 
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	err := notFoundView.Render(w, nil)
+	err := notFoundView.Render(w, struct{ ActivePage string }{ActivePage: ""})
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -80,7 +83,17 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func factoids(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
-	err := factoidsView.Render(w, struct{ ActivePage string }{ActivePage: "factoids"})
+	factoids, err := Client.FactoidRange(0, 50)
+	if err != nil {
+		return
+	}
+	err = factoidsView.Render(w, struct {
+		ActivePage string
+		Factoids   []*pandora.Factoid
+	}{
+		ActivePage: "factoids",
+		Factoids:   factoids,
+	})
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
