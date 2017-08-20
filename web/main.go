@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	"github.com/gorilla/mux"
@@ -29,9 +30,10 @@ func init() {
 }
 
 var (
-	notFoundView *views.View
-	homeView     *views.View
-	factoidsView *views.View
+	notFoundView     *views.View
+	homeView         *views.View
+	factoidsView     *views.View
+	factoidsEditView *views.View
 )
 
 func main() {
@@ -45,11 +47,13 @@ func main() {
 	notFoundView = views.New("base", "views/notfound.gohtml")
 	homeView = views.New("base", "views/home.gohtml")
 	factoidsView = views.New("base", "views/factoids.gohtml")
+	factoidsEditView = views.New("base", "views/factoids_edit.gohtml")
 
 	r := mux.NewRouter()
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 	r.HandleFunc("/", home)
 	r.HandleFunc("/factoids", factoids)
+	r.HandleFunc("/factoids/{id:[0-9]+}/edit", factoidsEdit)
 
 	s := &http.Server{
 		Addr:    ":3000",
@@ -93,6 +97,30 @@ func factoids(w http.ResponseWriter, r *http.Request) {
 	}{
 		ActivePage: "factoids",
 		Factoids:   factoids,
+	})
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+}
+
+func factoidsEdit(w http.ResponseWriter, r *http.Request) {
+	var f *pandora.Factoid
+	vars := mux.Vars(r)
+	strID, ok := vars["id"]
+
+	if id, err := strconv.ParseUint(strID, 10, 64); !ok || err != nil {
+		return
+	} else if f, err = Client.Factoid(id); err != nil {
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	err := factoidsEditView.Render(w, struct {
+		ActivePage string
+		Factoid    *pandora.Factoid
+	}{
+		ActivePage: "factoids",
+		Factoid:    f,
 	})
 	if err != nil {
 		fmt.Println("Error: ", err)
