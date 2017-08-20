@@ -154,6 +154,12 @@ func factoidsEditPost(w http.ResponseWriter, r *http.Request) {
 			f.DateEdited = time.Now()
 		}
 
+		protected := r.PostFormValue("protected")
+		if (protected != "") != f.Protected {
+			f.Protected = !f.Protected
+			f.DateEdited = time.Now()
+		}
+
 		i := 0
 		for {
 			v := r.PostFormValue("res_" + strconv.Itoa(i) + "_response")
