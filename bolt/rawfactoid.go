@@ -131,6 +131,18 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 	return f, nil
 }
 
+func fetchFactoid(tx *bolt.Tx, id uint64) []byte {
+	b := tx.Bucket([]byte(factBucket))
+	return b.Get(itob(id))
+}
+
+func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
+	b := tx.Bucket([]byte(factBucket))
+	bt := tx.Bucket([]byte(factTrigBucket))
+	id := bt.Get([]byte(trigger))
+	return b.Get(id)
+}
+
 // Factoid Fetches factoid with a given ID from BoltDB.
 func (s *RawFactoidService) Factoid(id uint64) (*pandora.Factoid, error) {
 	tx, err := s.DB.Begin(false)
