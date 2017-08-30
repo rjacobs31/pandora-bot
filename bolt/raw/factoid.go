@@ -16,17 +16,48 @@ import (
 var _ pandora.FactoidService = &FactoidService{}
 
 const (
-	factBucket     = "factoids"
-	factTrigBucket = "factoid_trigger_index"
+	factoidBucketName      = "Factoids"
+	triggerIndexBucketName = "FactoidTriggerIndex"
 
 	// MaxFactoidFetch The maximum number of factoids that can be fetched together
 	MaxFactoidFetch = 100
 )
 
+// responseBucket Gets the BoltDB bucket for FactoidResponse objects.
+func factoidBucket(tx *bolt.Tx) (b *bolt.Bucket) {
+	return tx.Bucket([]byte(factoidBucketName))
+}
+
+// responseBucket Gets the BoltDB bucket for FactoidResponse objects.
+func triggerIndexBucket(tx *bolt.Tx) (b *bolt.Bucket) {
+	return tx.Bucket([]byte(triggerIndexBucketName))
+}
+
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
 	DB  *bolt.DB
 	Now func() time.Time
+}
+
+// NewFactoidService instantiates a new FactoidService.
+func NewFactoidService(db *bolt.DB) (s *FactoidService, err error) {
+	if db == nil {
+		err = errors.New("FactoidService: No DB provided")
+		return
+	}
+
+	// Initialize top-level buckets.
+	tx, err := db.Begin(true)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	_, err = tx.CreateBucketIfNotExists([]byte(factoidBucketName))
+	if err != nil {
+		return
+	}
+	return &FactoidService{DB: db}, tx.Commit()
 }
 
 // MarshalFactoid Marshals from *pandora.Factoid to protobuf bytes.
@@ -78,13 +109,13 @@ func UnmarshalFactoid(b []byte) (*pandora.Factoid, error) {
 }
 
 func fetchFactoid(tx *bolt.Tx, id uint64) []byte {
-	b := tx.Bucket([]byte(factBucket))
+	b := factoidBucket(tx)
 	return b.Get(itob(id))
 }
 
 func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 	id := bt.Get([]byte(trigger))
 	return b.Get(id)
 }
@@ -97,7 +128,7 @@ func (s *FactoidService) Factoid(id uint64) (*pandora.Factoid, error) {
 	}
 	defer tx.Rollback()
 
-	b := tx.Bucket([]byte(factBucket))
+	b := factoidBucket(tx)
 	buf := b.Get(itob(id))
 	if buf == nil || len(buf) == 0 {
 		return nil, errors.New("factoid not exist")
@@ -113,8 +144,8 @@ func (s *FactoidService) FactoidByTrigger(trigger string) (*pandora.Factoid, err
 	}
 	defer tx.Rollback()
 
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 
 	id := bt.Get([]byte(trigger))
 	buf := b.Get(id)
@@ -138,7 +169,7 @@ func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoi
 	}
 	defer tx.Rollback()
 
-	b := tx.Bucket([]byte(factBucket))
+	b := factoidBucket(tx)
 	cur := b.Cursor()
 
 	k, v := cur.Seek(itob(fromID))
@@ -168,8 +199,8 @@ func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
 		return pf.Responses[i].Response < pf.Responses[j].Response
 	})
 
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 
 	// if ID already present then can't insert, else get new ID
 	trigger := pf.Trigger
@@ -222,8 +253,8 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 	now := s.Now()
 	pf.DateEdited = now
 
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 	buf, err := MarshalFactoid(pf)
 	if err != nil {
 		return err
@@ -260,8 +291,8 @@ func (s *FactoidService) PutByTrigger(trigger string, pf *pandora.Factoid) error
 		return pf.Responses[i].Response < pf.Responses[j].Response
 	})
 
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 	if id = bt.Get([]byte(trigger)); id == nil || len(id) < 1 {
 		uintID, _ := b.NextSequence()
 		pf.ID = uintID
@@ -292,8 +323,8 @@ func (s *FactoidService) Delete(id uint64) error {
 	}
 	defer tx.Rollback()
 
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
+	b := factoidBucket(tx)
+	bt := triggerIndexBucket(tx)
 	buf := b.Get(itob(id))
 	if buf == nil || len(buf) < 1 {
 		return errors.New("factoid not exist")

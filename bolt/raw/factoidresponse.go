@@ -48,49 +48,49 @@ func NewFactoidResponseService(db *bolt.DB) (s *FactoidResponseService, err erro
 }
 
 // MarshalFactoidResponse Marshals from *pandora.FactoidResponse to protobuf bytes.
-func MarshalFactoidResponse(pf *pandora.FactoidResponse) (buf []byte, err error) {
-	dateCreated, err := ptypes.TimestampProto(pf.DateCreated)
+func MarshalFactoidResponse(pr *pandora.FactoidResponse) (buf []byte, err error) {
+	dateCreated, err := ptypes.TimestampProto(pr.DateCreated)
 	if err != nil {
 		return
 	}
-	dateEdited, err := ptypes.TimestampProto(pf.DateEdited)
+	dateEdited, err := ptypes.TimestampProto(pr.DateEdited)
 	if err != nil {
 		return
 	}
 
 	r := &internal.FactoidResponse{
-		ID:          pf.ID,
-		FactoidID:   pf.FactoidID,
+		ID:          pr.ID,
+		FactoidID:   pr.FactoidID,
 		DateCreated: dateCreated,
 		DateEdited:  dateEdited,
-		Response:    pf.Response,
+		Response:    pr.Response,
 	}
 	return proto.Marshal(r)
 }
 
 // UnmarshalFactoidResponse Unmarshals from protobuf bytes to *pandora.FactoidResponse.
-func UnmarshalFactoidResponse(b []byte) (r *pandora.FactoidResponse, err error) {
-	pf := &internal.FactoidResponse{}
-	err = proto.Unmarshal(b, pf)
+func UnmarshalFactoidResponse(b []byte) (pr *pandora.FactoidResponse, err error) {
+	r := &internal.FactoidResponse{}
+	err = proto.Unmarshal(b, r)
 	if err != nil {
 		return
 	}
 
-	dateCreated, err := ptypes.Timestamp(pf.DateCreated)
+	dateCreated, err := ptypes.Timestamp(r.DateCreated)
 	if err != nil {
 		return
 	}
-	dateEdited, err := ptypes.Timestamp(pf.DateEdited)
+	dateEdited, err := ptypes.Timestamp(r.DateEdited)
 	if err != nil {
 		return
 	}
 
-	r = &pandora.FactoidResponse{
-		ID:          pf.ID,
-		FactoidID:   pf.FactoidID,
+	pr = &pandora.FactoidResponse{
+		ID:          r.ID,
+		FactoidID:   r.FactoidID,
 		DateCreated: dateCreated,
 		DateEdited:  dateEdited,
-		Response:    pf.Response,
+		Response:    r.Response,
 	}
 	return
 }
