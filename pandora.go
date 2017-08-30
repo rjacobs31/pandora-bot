@@ -20,7 +20,7 @@ type Factoid struct {
 }
 
 type DataClient interface {
-	FactoidService
+	SimpleFactoidService
 	RawFactoidService
 }
 
@@ -34,6 +34,16 @@ type RawFactoidService interface {
 	DeleteFactoid(id uint64) error
 }
 
+type FactoidService interface {
+	Factoid(id uint64) (*Factoid, error)
+	FactoidByTrigger(trigger string) (*Factoid, error)
+	Range(fromID, count uint64) (factoids []*Factoid, err error)
+	Create(f *Factoid) (id uint64, err error)
+	Put(id uint64, f *Factoid) error
+	PutByTrigger(trigger string, f *Factoid) error
+	Delete(id uint64) error
+}
+
 type FactoidResponseService interface {
 	FactoidResponse(id uint64) (r *FactoidResponse, ok bool)
 	Create(r *FactoidResponse) (id uint64, err error)
@@ -41,7 +51,7 @@ type FactoidResponseService interface {
 	Delete(id uint64) (err error)
 }
 
-type FactoidService interface {
+type SimpleFactoidService interface {
 	PutResponse(trigger, response string) error
 	RandomResponse(trigger string) (string, error)
 }
