@@ -201,3 +201,83 @@ func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err
 	}
 	return
 }
+
+// ResponseCount Counts the number of responses associated with the given
+// factoid ID in BoltDB.
+func (s *FactoidResponseService) ResponseCount(id uint64) (count int, err error) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	var (
+		b = responseBucket(tx)
+		c = b.Cursor()
+		r *pandora.FactoidResponse
+	)
+	for k, buf := c.First(); k != nil; k, buf = c.Next() {
+		if r, err = UnmarshalFactoidResponse(buf); err != nil {
+			return
+		} else if r.FactoidID == id {
+			count++
+		}
+	}
+	return
+}
+
+// ResponseByIndex Returns the `n`th response associated with the given
+// factoid ID in BoltDB.
+func (s *FactoidResponseService) ResponseByIndex(id uint64, n uint64) (r *pandora.FactoidResponse, err error) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	b := responseBucket(tx)
+	c := b.Cursor()
+	i := uint64(0)
+	for k, buf := c.First(); k != nil; k, buf = c.Next() {
+		if r, err = UnmarshalFactoidResponse(buf); err != nil {
+			return
+		} else if r.FactoidID == id {
+			if i >= n {
+				return
+			}
+			i++
+		}
+	}
+
+	return nil, errors.New("FactoidService: Outside index")
+}
+
+// ResponseRange Returns the `count` responses associated with the given
+// factoid ID in BoltDB.
+func (s *FactoidResponseService) ResponseRange(id uint64, startID uint64, count uint64) (responses []*pandora.FactoidResponse, err error) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+
+	var (
+		b = responseBucket(tx)
+		c = b.Cursor()
+		i = uint64(0)
+		r *pandora.FactoidResponse
+	)
+	responses = make([]*pandora.FactoidResponse, 0, count)
+	for k, buf := c.First(); k != nil; k, buf = c.Next() {
+		if r, err = UnmarshalFactoidResponse(buf); err != nil {
+			return
+		} else if r.FactoidID == id {
+			responses = append(responses, r)
+			if i >= count {
+				return
+			}
+			i++
+		}
+	}
+	return
+}
