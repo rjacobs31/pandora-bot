@@ -118,12 +118,34 @@ func (s *FactoidResponseService) FactoidResponse(id uint64) (r *pandora.FactoidR
 
 // Create Creates a new FactoidResponse in BoltDB.
 func (s *FactoidResponseService) Create(r *pandora.FactoidResponse) (id uint64, err error) {
+	if r.FactoidID == 0 {
+		return 0, errors.New("FactoidResponseService: Put without FactoidID")
+	}
+
+	tx, err := s.DB.Begin(true)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	b := responseBucket(tx)
+
+	id, _ = b.NextSequence()
+	r.ID = id
+	buf, err := MarshalFactoidResponse(r)
+	if err != nil {
+		return
+	}
+
+	err = b.Put(itob(id), buf)
+	if err == nil {
+		err = tx.Commit()
+	}
 	return
 }
 
 // Delete Deletes a FactoidResponse with a given ID from BoltDB.
 func (s *FactoidResponseService) Delete(id uint64) (err error) {
-	tx, err := s.DB.Begin(false)
+	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return
 	}
@@ -137,6 +159,19 @@ func (s *FactoidResponseService) Delete(id uint64) (err error) {
 	return
 }
 
+// Exist Checks existence of FactoidResponse with a given ID from BoltDB.
+func (s *FactoidResponseService) Exist(id uint64) (exists bool) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	b := responseBucket(tx)
+
+	v := b.Get(itob(id))
+	return v != nil && len(v) != 0
+}
+
 // Put Puts a FactoidResponse under a given ID in BoltDB. Will replace an
 // existing FactoidResponse.
 func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err error) {
@@ -144,6 +179,8 @@ func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err
 		return errors.New("FactoidResponseService: Put without ID")
 	} else if r == nil {
 		return errors.New("FactoidResponseService: Put without value")
+	} else if r.FactoidID == 0 {
+		return errors.New("FactoidResponseService: Put without FactoidID")
 	}
 
 	tx, err := s.DB.Begin(true)
