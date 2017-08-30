@@ -129,5 +129,16 @@ func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err
 
 // Delete Deletes a FactoidResponse with a given ID from BoltDB.
 func (s *FactoidResponseService) Delete(id uint64) (err error) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	b := responseBucket(tx)
+
+	err = b.Delete(itob(id))
+	if err == nil {
+		return tx.Commit()
+	}
 	return
 }
