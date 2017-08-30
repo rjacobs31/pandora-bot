@@ -97,6 +97,22 @@ func UnmarshalFactoidResponse(b []byte) (r *pandora.FactoidResponse, err error) 
 
 // FactoidResponse Fetches a FactoidResponse with a given ID in BoltDB.
 func (s *FactoidResponseService) FactoidResponse(id uint64) (r *pandora.FactoidResponse, ok bool) {
+	tx, err := s.DB.Begin(false)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	b := responseBucket(tx)
+
+	v := b.Get(itob(id))
+	if v == nil || len(v) < 1 {
+		return
+	}
+
+	r, err = UnmarshalFactoidResponse(v)
+	if err == nil {
+		ok = true
+	}
 	return
 }
 
