@@ -40,7 +40,6 @@ type FactoidService interface {
 	Range(fromID, count uint64) (factoids []*Factoid, err error)
 	Create(f *Factoid) (id uint64, err error)
 	Put(id uint64, f *Factoid) error
-	PutByTrigger(trigger string, f *Factoid) error
 	Delete(id uint64) error
 }
 
