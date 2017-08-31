@@ -159,6 +159,28 @@ func (s *FactoidResponseService) Delete(id uint64) (err error) {
 	return
 }
 
+// DeleteForFactoid Deletes FactoidResponses for a given factoid ID from BoltDB.
+func (s *FactoidResponseService) DeleteForFactoid(factoidID uint64) (err error) {
+	tx, err := s.DB.Begin(true)
+	if err != nil {
+		return
+	}
+	defer tx.Rollback()
+	b := responseBucket(tx)
+	c := b.Cursor()
+
+	for k, buf := c.First(); k != nil; k, buf = c.Next() {
+		var r *pandora.FactoidResponse
+		r, err = UnmarshalFactoidResponse(buf)
+		if err != nil {
+			return
+		} else if r.FactoidID == factoidID {
+			b.Delete(k)
+		}
+	}
+	return
+}
+
 // Exist Checks existence of FactoidResponse with a given ID from BoltDB.
 func (s *FactoidResponseService) Exist(id uint64) (exists bool) {
 	tx, err := s.DB.Begin(false)
