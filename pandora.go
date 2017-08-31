@@ -35,8 +35,8 @@ type RawFactoidService interface {
 }
 
 type FactoidService interface {
-	Factoid(id uint64) (*Factoid, error)
-	FactoidByTrigger(trigger string) (*Factoid, error)
+	Factoid(id uint64) (*Factoid, bool)
+	FactoidByTrigger(trigger string) (*Factoid, bool)
 	Range(fromID, count uint64) (factoids []*Factoid, err error)
 	Create(f *Factoid) (id uint64, err error)
 	Put(id uint64, f *Factoid) error

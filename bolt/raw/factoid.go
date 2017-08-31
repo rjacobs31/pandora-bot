@@ -57,6 +57,10 @@ func NewFactoidService(db *bolt.DB) (s *FactoidService, err error) {
 	if err != nil {
 		return
 	}
+	_, err = tx.CreateBucketIfNotExists([]byte(triggerIndexBucketName))
+	if err != nil {
+		return
+	}
 	return &FactoidService{DB: db}, tx.Commit()
 }
 
@@ -121,26 +125,29 @@ func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
 }
 
 // Factoid Fetches factoid with a given ID from BoltDB.
-func (s *FactoidService) Factoid(id uint64) (*pandora.Factoid, error) {
+func (s *FactoidService) Factoid(id uint64) (f *pandora.Factoid, ok bool) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer tx.Rollback()
 
 	b := factoidBucket(tx)
 	buf := b.Get(ItoB(id))
 	if buf == nil || len(buf) == 0 {
-		return nil, errors.New("factoid not exist")
+		return
 	}
-	return UnmarshalFactoid(buf)
+	if f, err = UnmarshalFactoid(buf); err == nil {
+		ok = true
+	}
+	return
 }
 
 // FactoidByTrigger Fetches factoid with a given trigger from BoltDB.
-func (s *FactoidService) FactoidByTrigger(trigger string) (*pandora.Factoid, error) {
+func (s *FactoidService) FactoidByTrigger(trigger string) (f *pandora.Factoid, ok bool) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer tx.Rollback()
 
@@ -148,11 +155,17 @@ func (s *FactoidService) FactoidByTrigger(trigger string) (*pandora.Factoid, err
 	bt := triggerIndexBucket(tx)
 
 	id := bt.Get([]byte(trigger))
+	if id == nil || len(id) == 0 {
+		return
+	}
 	buf := b.Get(id)
 	if buf == nil || len(buf) == 0 {
-		return nil, errors.New("factoid not exist")
+		return
 	}
-	return UnmarshalFactoid(buf)
+	if f, err = UnmarshalFactoid(buf); err == nil {
+		ok = true
+	}
+	return
 }
 
 // Range Fetches `count` factoids, starting at `fromID`.
@@ -189,15 +202,15 @@ func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoi
 
 // Create Inserts factoid with a given ID into BoltDB.
 func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
+	if pf.Trigger == "" {
+		return 0, errors.New("FactoidService: Empty trigger")
+	}
+
 	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return 0, err
 	}
 	defer tx.Rollback()
-
-	sort.Slice(pf.Responses[:], func(i int, j int) bool {
-		return pf.Responses[i].Response < pf.Responses[j].Response
-	})
 
 	b := factoidBucket(tx)
 	bt := triggerIndexBucket(tx)
@@ -243,9 +256,6 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 	defer tx.Rollback()
 
 	trigger := pf.Trigger
-	sort.Slice(pf.Responses[:], func(i int, j int) bool {
-		return pf.Responses[i].Response < pf.Responses[j].Response
-	})
 
 	if s.Now == nil {
 		s.Now = time.Now
