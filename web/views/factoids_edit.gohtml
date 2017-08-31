@@ -1,0 +1,105 @@
+{{define "yield"}}
+  {{with .Factoid}}
+    <h1>Factoid #{{.ID}}</h1>
+      <form method="post">
+        <div class="card">
+          <div class="card-block">
+            <h4 class="card-title">Factoid info</h4>
+            <div class="form-group">
+              <label>ID</label>
+              <p class="form-control-static">{{.ID}}</p>
+              <input type="hidden" name="id" value="{{.ID}}" />
+            </div>
+            <div class="form-group">
+              <label>Created at</label>
+              <input
+                class="form-control"
+                name="date_created"
+                type="text"
+                value="{{.DateCreated}}" />
+            </div>
+            <div class="form-group">
+              <label>Last edited at</label>
+              <input
+                class="form-control"
+                name="date_edited"
+                type="text"
+                value="{{.DateEdited}}" />
+            </div>
+            <div class="form-group">
+              <label>Protected</label>
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input
+                    class="form-check-input"
+                    name="protected"
+                    type="checkbox"
+                    {{if .Protected}}checked{{end}} />
+                  Can regular users edit this factoid?
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Trigger</label>
+              <input
+                class="form-control"
+                name="trigger"
+                type="text"
+                value="{{.Trigger}}" />
+              <small class="form-text text-muted">
+                Please ensure that the text is lowercase and free of
+                unnecessary punctuation.
+              </small>
+            </div>
+          </div>
+
+          <!-- Responses -->
+          {{with .Responses}}
+            {{range $k, $v := .}}
+              <div class="card-block">
+                <div class="card">
+                  <div class="card-block">
+                    <h4 class="card-title">Response #{{$k}}</h4>
+                    <div class="form-group">
+                      <label>Created at</label>
+                      <input
+                        class="form-control"
+                        name="res_{{$k}}_date_created"
+                        type="text"
+                        value="{{$v.DateCreated}}" />
+                    </div>
+                    <div class="form-group">
+                      <label>Last edited at</label>
+                      <input
+                        class="form-control"
+                        name="res_{{$k}}_date_edited"
+                        type="text"
+                        value="{{$v.DateEdited}}" />
+                    </div>
+                    <div class="form-group">
+                      <label>Response</label>
+                      <textarea
+                        class="form-control"
+                        name="res_{{$k}}_response"
+                        rows="3"
+                        type="text"
+                        value="{{$v.Response}}">{{.Response}}</textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {{end}}
+          {{end}}
+          <!-- End of responses -->
+
+          <div class="card-block">
+            <input class="btn btn-primary" role="button" type="submit" value="Save" />
+            <a class="btn btn-primary" href="/factoids" role="button">Cancel</a>
+          </div>
+        </div>
+      </form>
+  {{else}}
+    <h1>Sorry, cap'n. We can't go there.</h1>
+    <p>There doesn't seem to be a factoid by this ID.</p>
+  {{end}}
+{{end}}

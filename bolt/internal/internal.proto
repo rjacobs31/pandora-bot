@@ -6,6 +6,8 @@ message FactoidResponse {
   google.protobuf.Timestamp DateCreated = 1;
   google.protobuf.Timestamp DateEdited = 2;
   string Response = 3;
+  uint64 ID = 4;
+  uint64 FactoidID = 5;
 }
 
 message Factoid {

@@ -17,8 +17,7 @@ import (
 	"./internal"
 )
 
-var _ pandora.FactoidService = &FactoidService{}
-var _ pandora.RawFactoidService = &RawFactoidService{}
+var _ pandora.SimpleFactoidService = &FactoidService{}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
