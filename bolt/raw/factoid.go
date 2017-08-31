@@ -110,7 +110,7 @@ func UnmarshalFactoid(b []byte) (*pandora.Factoid, error) {
 
 func fetchFactoid(tx *bolt.Tx, id uint64) []byte {
 	b := factoidBucket(tx)
-	return b.Get(itob(id))
+	return b.Get(ItoB(id))
 }
 
 func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
@@ -129,7 +129,7 @@ func (s *FactoidService) Factoid(id uint64) (*pandora.Factoid, error) {
 	defer tx.Rollback()
 
 	b := factoidBucket(tx)
-	buf := b.Get(itob(id))
+	buf := b.Get(ItoB(id))
 	if buf == nil || len(buf) == 0 {
 		return nil, errors.New("factoid not exist")
 	}
@@ -172,7 +172,7 @@ func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoi
 	b := factoidBucket(tx)
 	cur := b.Cursor()
 
-	k, v := cur.Seek(itob(fromID))
+	k, v := cur.Seek(ItoB(fromID))
 	for i := uint64(0); i < count-1; i++ {
 		if k == nil || v == nil {
 			break
@@ -222,11 +222,11 @@ func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
 		return
 	}
 
-	err = b.Put(itob(id), buf)
+	err = b.Put(ItoB(id), buf)
 	if err != nil {
 		return
 	}
-	err = bt.Put([]byte(trigger), itob(id))
+	err = bt.Put([]byte(trigger), ItoB(id))
 	if err != nil {
 		return
 	}
@@ -260,11 +260,11 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 		return err
 	}
 
-	err = b.Put(itob(id), buf)
+	err = b.Put(ItoB(id), buf)
 	if err != nil {
 		return err
 	}
-	err = bt.Put([]byte(trigger), itob(id))
+	err = bt.Put([]byte(trigger), ItoB(id))
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ func (s *FactoidService) PutByTrigger(trigger string, pf *pandora.Factoid) error
 	if id = bt.Get([]byte(trigger)); id == nil || len(id) < 1 {
 		uintID, _ := b.NextSequence()
 		pf.ID = uintID
-		id = itob(uintID)
+		id = ItoB(uintID)
 	}
 	buf, err := MarshalFactoid(pf)
 	if err != nil {
@@ -325,7 +325,7 @@ func (s *FactoidService) Delete(id uint64) error {
 
 	b := factoidBucket(tx)
 	bt := triggerIndexBucket(tx)
-	buf := b.Get(itob(id))
+	buf := b.Get(ItoB(id))
 	if buf == nil || len(buf) < 1 {
 		return errors.New("factoid not exist")
 	}
@@ -335,6 +335,6 @@ func (s *FactoidService) Delete(id uint64) error {
 	}
 
 	bt.Delete([]byte(f.Trigger))
-	b.Delete(itob(id))
+	b.Delete(ItoB(id))
 	return tx.Commit()
 }

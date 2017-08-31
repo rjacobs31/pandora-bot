@@ -104,7 +104,7 @@ func (s *FactoidResponseService) FactoidResponse(id uint64) (r *pandora.FactoidR
 	defer tx.Rollback()
 	b := responseBucket(tx)
 
-	v := b.Get(itob(id))
+	v := b.Get(ItoB(id))
 	if v == nil || len(v) < 1 {
 		return
 	}
@@ -136,7 +136,7 @@ func (s *FactoidResponseService) Create(r *pandora.FactoidResponse) (id uint64, 
 		return
 	}
 
-	err = b.Put(itob(id), buf)
+	err = b.Put(ItoB(id), buf)
 	if err == nil {
 		err = tx.Commit()
 	}
@@ -152,7 +152,7 @@ func (s *FactoidResponseService) Delete(id uint64) (err error) {
 	defer tx.Rollback()
 	b := responseBucket(tx)
 
-	err = b.Delete(itob(id))
+	err = b.Delete(ItoB(id))
 	if err == nil {
 		return tx.Commit()
 	}
@@ -168,7 +168,7 @@ func (s *FactoidResponseService) Exist(id uint64) (exists bool) {
 	defer tx.Rollback()
 	b := responseBucket(tx)
 
-	v := b.Get(itob(id))
+	v := b.Get(ItoB(id))
 	return v != nil && len(v) != 0
 }
 
@@ -194,7 +194,7 @@ func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err
 	if err != nil {
 		return
 	}
-	err = b.Put(itob(id), buf)
+	err = b.Put(ItoB(id), buf)
 
 	if err == nil {
 		return tx.Commit()
