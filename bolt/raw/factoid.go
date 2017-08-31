@@ -2,7 +2,6 @@ package raw
 
 import (
 	"errors"
-	"sort"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -265,6 +264,17 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 
 	b := factoidBucket(tx)
 	bt := triggerIndexBucket(tx)
+
+	// Clear old trigger index if it exists and differs
+	oldBytes := b.Get(ItoB(id))
+	if oldBytes != nil && len(oldBytes) != 0 {
+		var oldF *pandora.Factoid
+		oldF, err = UnmarshalFactoid(oldBytes)
+		if err == nil && oldF.Trigger != pf.Trigger {
+			bt.Delete([]byte(oldF.Trigger))
+		}
+	}
+
 	buf, err := MarshalFactoid(pf)
 	if err != nil {
 		return err
@@ -275,49 +285,6 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 		return err
 	}
 	err = bt.Put([]byte(trigger), ItoB(id))
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-// PutByTrigger Inserts factoid with a given trigger into BoltDB.
-func (s *FactoidService) PutByTrigger(trigger string, pf *pandora.Factoid) error {
-	var id []byte
-	tx, err := s.DB.Begin(true)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if s.Now == nil {
-		s.Now = time.Now
-	}
-	now := s.Now()
-	pf.DateEdited = now
-
-	sort.Slice(pf.Responses[:], func(i int, j int) bool {
-		return pf.Responses[i].Response < pf.Responses[j].Response
-	})
-
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
-	if id = bt.Get([]byte(trigger)); id == nil || len(id) < 1 {
-		uintID, _ := b.NextSequence()
-		pf.ID = uintID
-		id = ItoB(uintID)
-	}
-	buf, err := MarshalFactoid(pf)
-	if err != nil {
-		return err
-	}
-
-	err = b.Put(id, buf)
-	if err != nil {
-		return err
-	}
-	err = bt.Put([]byte(trigger), id)
 	if err != nil {
 		return err
 	}
