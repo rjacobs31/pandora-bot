@@ -6,7 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	pandora ".."
+	pandora "github.com/rjacobs31/pandora-bot"
 )
 
 var _ pandora.DataClient = &Client{}

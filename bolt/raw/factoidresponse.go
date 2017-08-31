@@ -7,8 +7,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	pandora "../.."
-	internal "../internal"
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt/internal"
 )
 
 var _ pandora.FactoidResponseService = &FactoidResponseService{}

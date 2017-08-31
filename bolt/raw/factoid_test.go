@@ -3,8 +3,8 @@ package raw_test
 import (
 	"testing"
 
-	raw "."
-	pandora "../.."
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt/raw"
 )
 
 func TestFactoidService(t *testing.T) {

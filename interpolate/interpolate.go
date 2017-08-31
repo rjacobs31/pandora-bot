@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	pandora ".."
+	pandora "github.com/rjacobs31/pandora-bot"
 )
 
 // Error errors encountered during string interpolation.

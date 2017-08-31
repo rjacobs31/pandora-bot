@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	raw "."
+	"github.com/rjacobs31/pandora-bot/bolt/raw"
 )
 
 func TestItoB(t *testing.T) {

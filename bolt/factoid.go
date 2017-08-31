@@ -13,8 +13,8 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	pandora ".."
-	"./internal"
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt/internal"
 )
 
 var _ pandora.SimpleFactoidService = &FactoidService{}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	raw "."
-	pandora "../.."
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt/raw"
 )
 
 func newTestDB() (db *bolt.DB, close func() error, err error) {
