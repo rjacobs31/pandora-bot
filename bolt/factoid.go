@@ -13,11 +13,12 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 
-	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt/internal"
+	pandora ".."
+	"./internal"
 )
 
-var _ pandora.SimpleFactoidService = &FactoidService{}
+var _ pandora.FactoidService = &FactoidService{}
+var _ pandora.RawFactoidService = &RawFactoidService{}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {

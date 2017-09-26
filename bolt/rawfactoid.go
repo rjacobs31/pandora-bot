@@ -9,8 +9,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
-	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt/internal"
+	pandora ".."
+	"./internal"
 )
 
 var _ pandora.RawFactoidService = &RawFactoidService{}
@@ -129,18 +129,6 @@ func unpackageFactoidResponse(pf *internal.FactoidResponse) (*pandora.FactoidRes
 		Response:    pf.Response,
 	}
 	return f, nil
-}
-
-func fetchFactoid(tx *bolt.Tx, id uint64) []byte {
-	b := tx.Bucket([]byte(factBucket))
-	return b.Get(itob(id))
-}
-
-func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
-	b := tx.Bucket([]byte(factBucket))
-	bt := tx.Bucket([]byte(factTrigBucket))
-	id := bt.Get([]byte(trigger))
-	return b.Get(id)
 }
 
 // Factoid Fetches factoid with a given ID from BoltDB.

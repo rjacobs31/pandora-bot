@@ -3,7 +3,7 @@ package mock
 import (
 	"fmt"
 
-	pandora "github.com/rjacobs31/pandora-bot"
+	pandora ".."
 )
 
 var _ pandora.FactoidService = &FactoidService{}

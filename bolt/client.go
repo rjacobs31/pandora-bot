@@ -6,7 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	pandora "github.com/rjacobs31/pandora-bot"
+	pandora ".."
 )
 
 var _ pandora.DataClient = &Client{}
@@ -17,8 +17,8 @@ type Client struct {
 	Now  func() time.Time
 	DB   *bolt.DB
 
+	pandora.FactoidService
 	pandora.RawFactoidService
-	pandora.SimpleFactoidService
 }
 
 // NewClient creates a new BoltDB client.
@@ -36,8 +36,8 @@ func (c *Client) Open() error {
 		return err
 	}
 	c.DB = db
+	c.FactoidService = &FactoidService{DB: db}
 	c.RawFactoidService = &RawFactoidService{DB: db}
-	c.SimpleFactoidService = &FactoidService{DB: db}
 
 	// Initialize top-level buckets.
 	tx, err := c.DB.Begin(true)

@@ -10,9 +10,9 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/golang/protobuf/proto"
 
-	pandora "github.com/rjacobs31/pandora-bot"
-	bolt_internal "github.com/rjacobs31/pandora-bot/bolt/"
-	"github.com/rjacobs31/pandora-bot/bolt/internal"
+	bolt_internal "."
+	pandora ".."
+	"./internal"
 )
 
 var Now = time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)

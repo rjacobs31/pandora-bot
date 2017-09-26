@@ -10,8 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/namsral/flag"
 
-	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt"
+	pandora "../.."
+	bolt "../../bolt"
 )
 
 // Variables used for command line parameters

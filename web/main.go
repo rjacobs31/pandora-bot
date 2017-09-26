@@ -13,9 +13,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/namsral/flag"
 
-	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt"
-	"github.com/rjacobs31/pandora-bot/web/views"
+	pandora ".."
+	"../bolt"
+	"./views"
 )
 
 // Variables used for command line parameters
