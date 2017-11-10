@@ -6,7 +6,8 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	pandora ".."
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt/raw"
 )
 
 var _ pandora.DataClient = &Client{}
@@ -18,7 +19,6 @@ type Client struct {
 	DB   *bolt.DB
 
 	pandora.FactoidService
-	pandora.RawFactoidService
 }
 
 // NewClient creates a new BoltDB client.
@@ -37,24 +37,12 @@ func (c *Client) Open() error {
 	}
 	c.DB = db
 	c.FactoidService = &FactoidService{DB: db}
-	c.RawFactoidService = &RawFactoidService{DB: db}
 
 	// Initialize top-level buckets.
-	tx, err := c.DB.Begin(true)
-	if err != nil {
+	if raw.InitFactoid(db); err != nil {
 		return err
 	}
-	defer tx.Rollback()
-
-	if _, err := tx.CreateBucketIfNotExists([]byte(factBucket)); err != nil {
-		return err
-	}
-
-	if _, err := tx.CreateBucketIfNotExists([]byte(factTrigBucket)); err != nil {
-		return err
-	}
-
-	return tx.Commit()
+	return nil
 }
 
 // Close Closes a connection to BoltDB when done.

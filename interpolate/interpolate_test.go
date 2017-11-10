@@ -3,7 +3,7 @@ package interpolate_test
 import (
 	"testing"
 
-	interpolate "."
+	"github.com/rjacobs31/pandora-bot/interpolate"
 )
 
 type interpolateCase struct {

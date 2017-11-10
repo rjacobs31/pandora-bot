@@ -1,18 +1,20 @@
 syntax = "proto3";
-package internal;
+package ftypes;
 import "google/protobuf/timestamp.proto";
 
 message FactoidResponse {
   google.protobuf.Timestamp DateCreated = 1;
   google.protobuf.Timestamp DateEdited = 2;
   string Response = 3;
+  uint64 ID = 4;
 }
 
 message Factoid {
   google.protobuf.Timestamp DateCreated = 1;
   google.protobuf.Timestamp DateEdited = 2;
   bool Protected = 3;
-  repeated FactoidResponse Responses = 4;
+  repeated FactoidResponse DeprecatedResponses = 4;
   string Trigger = 5;
   uint64 ID = 6;
+  map<uint64, FactoidResponse> Responses = 7;
 }

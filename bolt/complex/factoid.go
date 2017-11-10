@@ -5,11 +5,10 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 
 	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt/internal"
+	"github.com/rjacobs31/pandora-bot/bolt/ftypes"
 )
 
 var _ pandora.FactoidService = &FactoidService{}
@@ -21,16 +20,6 @@ const (
 	// MaxFactoidFetch The maximum number of factoids that can be fetched together
 	MaxFactoidFetch = 100
 )
-
-// responseBucket Gets the BoltDB bucket for FactoidResponse objects.
-func factoidBucket(tx *bolt.Tx) (b *bolt.Bucket) {
-	return tx.Bucket([]byte(factoidBucketName))
-}
-
-// responseBucket Gets the BoltDB bucket for FactoidResponse objects.
-func triggerIndexBucket(tx *bolt.Tx) (b *bolt.Bucket) {
-	return tx.Bucket([]byte(triggerIndexBucketName))
-}
 
 // FactoidService BoltDB implementation of FactoidService interface.
 type FactoidService struct {
@@ -46,92 +35,42 @@ func NewFactoidService(db *bolt.DB) (s *FactoidService, err error) {
 	}
 
 	// Initialize top-level buckets.
-	tx, err := db.Begin(true)
-	if err != nil {
-		return
-	}
-	defer tx.Rollback()
+	db.Update(func(tx *bolt.Tx) error {
+		_, err = tx.CreateBucketIfNotExists([]byte(factoidBucketName))
+		if err != nil {
+			return err
+		}
+		_, err = tx.CreateBucketIfNotExists([]byte(triggerIndexBucketName))
+		return err
+	})
 
-	_, err = tx.CreateBucketIfNotExists([]byte(factoidBucketName))
-	if err != nil {
-		return
+	if err == nil {
+		s = &FactoidService{DB: db}
 	}
-	_, err = tx.CreateBucketIfNotExists([]byte(triggerIndexBucketName))
-	if err != nil {
-		return
-	}
-	return &FactoidService{DB: db}, tx.Commit()
-}
-
-// MarshalFactoid Marshals from *pandora.Factoid to protobuf bytes.
-func MarshalFactoid(pf *pandora.Factoid) ([]byte, error) {
-	dateCreated, err := ptypes.TimestampProto(pf.DateCreated)
-	if err != nil {
-		return nil, err
-	}
-	dateEdited, err := ptypes.TimestampProto(pf.DateEdited)
-	if err != nil {
-		return nil, err
-	}
-
-	f := &internal.Factoid{
-		ID:          pf.ID,
-		DateCreated: dateCreated,
-		DateEdited:  dateEdited,
-		Protected:   pf.Protected,
-		Trigger:     pf.Trigger,
-	}
-	return proto.Marshal(f)
-}
-
-// UnmarshalFactoid Unmarshals from protobuf bytes to *pandora.Factoid.
-func UnmarshalFactoid(b []byte) (*pandora.Factoid, error) {
-	pf := &internal.Factoid{}
-	err := proto.Unmarshal(b, pf)
-	if err != nil {
-		return nil, err
-	}
-
-	dateCreated, err := ptypes.Timestamp(pf.DateCreated)
-	if err != nil {
-		return nil, err
-	}
-	dateEdited, err := ptypes.Timestamp(pf.DateEdited)
-	if err != nil {
-		return nil, err
-	}
-
-	f := &pandora.Factoid{
-		ID:          pf.ID,
-		DateCreated: dateCreated,
-		DateEdited:  dateEdited,
-		Protected:   pf.Protected,
-		Trigger:     pf.Trigger,
-	}
-	return f, nil
+	return
 }
 
 func fetchFactoid(tx *bolt.Tx, id uint64) []byte {
-	b := factoidBucket(tx)
+	b := FactoidBucket(tx)
 	return b.Get(ItoB(id))
 }
 
 func fetchFactoidByTrigger(tx *bolt.Tx, trigger string) []byte {
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
+	b := FactoidBucket(tx)
+	bt := TriggerIndexBucket(tx)
 	id := bt.Get([]byte(trigger))
 	return b.Get(id)
 }
 
 // Factoid Fetches factoid with a given ID from BoltDB.
-func (s *FactoidService) Factoid(id uint64) (f *pandora.Factoid, ok bool) {
+func (s *FactoidService) Factoid(id uint64) (f *ftypes.Factoid, ok bool) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return
 	}
 	defer tx.Rollback()
 
-	b := factoidBucket(tx)
+	b := FactoidBucket(tx)
 	buf := b.Get(ItoB(id))
 	if buf == nil || len(buf) == 0 {
 		return
@@ -143,15 +82,15 @@ func (s *FactoidService) Factoid(id uint64) (f *pandora.Factoid, ok bool) {
 }
 
 // FactoidByTrigger Fetches factoid with a given trigger from BoltDB.
-func (s *FactoidService) FactoidByTrigger(trigger string) (f *pandora.Factoid, ok bool) {
+func (s *FactoidService) FactoidByTrigger(trigger string) (f *ftypes.Factoid, ok bool) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return
 	}
 	defer tx.Rollback()
 
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
+	b := FactoidBucket(tx)
+	bt := TriggerIndexBucket(tx)
 
 	id := bt.Get([]byte(trigger))
 	if id == nil || len(id) == 0 {
@@ -168,8 +107,8 @@ func (s *FactoidService) FactoidByTrigger(trigger string) (f *pandora.Factoid, o
 }
 
 // Range Fetches `count` factoids, starting at `fromID`.
-func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoid, err error) {
-	var f *pandora.Factoid
+func (s *FactoidService) Range(fromID, count uint64) (factoids []*ftypes.Factoid, err error) {
+	var f *ftypes.Factoid
 
 	if count > MaxFactoidFetch {
 		count = MaxFactoidFetch
@@ -181,7 +120,7 @@ func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoi
 	}
 	defer tx.Rollback()
 
-	b := factoidBucket(tx)
+	b := FactoidBucket(tx)
 	cur := b.Cursor()
 
 	k, v := cur.Seek(ItoB(fromID))
@@ -200,7 +139,7 @@ func (s *FactoidService) Range(fromID, count uint64) (factoids []*pandora.Factoi
 }
 
 // Create Inserts factoid with a given ID into BoltDB.
-func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
+func (s *FactoidService) Create(pf *ftypes.Factoid) (id uint64, err error) {
 	if pf.Trigger == "" {
 		return 0, errors.New("FactoidService: Empty trigger")
 	}
@@ -211,8 +150,8 @@ func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
 	}
 	defer tx.Rollback()
 
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
+	b := FactoidBucket(tx)
+	bt := TriggerIndexBucket(tx)
 
 	// if ID already present then can't insert, else get new ID
 	trigger := pf.Trigger
@@ -225,7 +164,7 @@ func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
 	if s.Now == nil {
 		s.Now = time.Now
 	}
-	now := s.Now()
+	now := ptypes.TimestampNow()
 	pf.DateCreated = now
 	pf.DateEdited = now
 
@@ -247,7 +186,7 @@ func (s *FactoidService) Create(pf *pandora.Factoid) (id uint64, err error) {
 }
 
 // Put Inserts factoid with a given ID into BoltDB.
-func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
+func (s *FactoidService) Put(id uint64, pf *ftypes.Factoid) error {
 	tx, err := s.DB.Begin(true)
 	if err != nil {
 		return err
@@ -259,16 +198,16 @@ func (s *FactoidService) Put(id uint64, pf *pandora.Factoid) error {
 	if s.Now == nil {
 		s.Now = time.Now
 	}
-	now := s.Now()
+	now := ptypes.TimestampNow()
 	pf.DateEdited = now
 
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
+	b := FactoidBucket(tx)
+	bt := TriggerIndexBucket(tx)
 
 	// Clear old trigger index if it exists and differs
 	oldBytes := b.Get(ItoB(id))
 	if oldBytes != nil && len(oldBytes) != 0 {
-		var oldF *pandora.Factoid
+		var oldF *ftypes.Factoid
 		oldF, err = UnmarshalFactoid(oldBytes)
 		if err == nil && oldF.Trigger != pf.Trigger {
 			bt.Delete([]byte(oldF.Trigger))
@@ -300,8 +239,8 @@ func (s *FactoidService) Delete(id uint64) error {
 	}
 	defer tx.Rollback()
 
-	b := factoidBucket(tx)
-	bt := triggerIndexBucket(tx)
+	b := FactoidBucket(tx)
+	bt := TriggerIndexBucket(tx)
 	buf := b.Get(ItoB(id))
 	if buf == nil || len(buf) < 1 {
 		return errors.New("factoid not exist")

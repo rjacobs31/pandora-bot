@@ -5,10 +5,9 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
 
 	pandora "github.com/rjacobs31/pandora-bot"
-	"github.com/rjacobs31/pandora-bot/bolt/internal"
+	"github.com/rjacobs31/pandora-bot/bolt/ftypes"
 )
 
 var _ pandora.FactoidResponseService = &FactoidResponseService{}
@@ -48,55 +47,22 @@ func NewFactoidResponseService(db *bolt.DB) (s *FactoidResponseService, err erro
 }
 
 // MarshalFactoidResponse Marshals from *pandora.FactoidResponse to protobuf bytes.
-func MarshalFactoidResponse(pr *pandora.FactoidResponse) (buf []byte, err error) {
-	dateCreated, err := ptypes.TimestampProto(pr.DateCreated)
-	if err != nil {
-		return
-	}
-	dateEdited, err := ptypes.TimestampProto(pr.DateEdited)
-	if err != nil {
-		return
-	}
-
-	r := &internal.FactoidResponse{
-		ID:          pr.ID,
-		FactoidID:   pr.FactoidID,
-		DateCreated: dateCreated,
-		DateEdited:  dateEdited,
-		Response:    pr.Response,
-	}
-	return proto.Marshal(r)
+func MarshalFactoidResponse(pr *ftypes.FactoidResponse) (buf []byte, err error) {
+	return proto.Marshal(pr)
 }
 
 // UnmarshalFactoidResponse Unmarshals from protobuf bytes to *pandora.FactoidResponse.
-func UnmarshalFactoidResponse(b []byte) (pr *pandora.FactoidResponse, err error) {
-	r := &internal.FactoidResponse{}
-	err = proto.Unmarshal(b, r)
+func UnmarshalFactoidResponse(b []byte) (pr *ftypes.FactoidResponse, err error) {
+	pr = &ftypes.FactoidResponse{}
+	err = proto.Unmarshal(b, pr)
 	if err != nil {
-		return
+		return nil, err
 	}
-
-	dateCreated, err := ptypes.Timestamp(r.DateCreated)
-	if err != nil {
-		return
-	}
-	dateEdited, err := ptypes.Timestamp(r.DateEdited)
-	if err != nil {
-		return
-	}
-
-	pr = &pandora.FactoidResponse{
-		ID:          r.ID,
-		FactoidID:   r.FactoidID,
-		DateCreated: dateCreated,
-		DateEdited:  dateEdited,
-		Response:    r.Response,
-	}
-	return
+	return pr, nil
 }
 
 // FactoidResponse Fetches a FactoidResponse with a given ID in BoltDB.
-func (s *FactoidResponseService) FactoidResponse(id uint64) (r *pandora.FactoidResponse, ok bool) {
+func (s *FactoidResponseService) FactoidResponse(id uint64) (r *ftypes.FactoidResponse, ok bool) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return
@@ -117,7 +83,7 @@ func (s *FactoidResponseService) FactoidResponse(id uint64) (r *pandora.FactoidR
 }
 
 // Create Creates a new FactoidResponse in BoltDB.
-func (s *FactoidResponseService) Create(r *pandora.FactoidResponse) (id uint64, err error) {
+func (s *FactoidResponseService) Create(r *ftypes.FactoidResponse) (id uint64, err error) {
 	if r.FactoidID == 0 {
 		return 0, errors.New("FactoidResponseService: Put without FactoidID")
 	}
@@ -170,7 +136,7 @@ func (s *FactoidResponseService) DeleteForFactoid(factoidID uint64) (err error) 
 	c := b.Cursor()
 
 	for k, buf := c.First(); k != nil; k, buf = c.Next() {
-		var r *pandora.FactoidResponse
+		var r *ftypes.FactoidResponse
 		r, err = UnmarshalFactoidResponse(buf)
 		if err != nil {
 			return
@@ -196,7 +162,7 @@ func (s *FactoidResponseService) Exist(id uint64) (exists bool) {
 
 // Put Puts a FactoidResponse under a given ID in BoltDB. Will replace an
 // existing FactoidResponse.
-func (s *FactoidResponseService) Put(id uint64, r *pandora.FactoidResponse) (err error) {
+func (s *FactoidResponseService) Put(id uint64, r *ftypes.FactoidResponse) (err error) {
 	if id == 0 {
 		return errors.New("FactoidResponseService: Put without ID")
 	} else if r == nil {
@@ -236,7 +202,7 @@ func (s *FactoidResponseService) ResponseCount(id uint64) (count int, err error)
 	var (
 		b = responseBucket(tx)
 		c = b.Cursor()
-		r *pandora.FactoidResponse
+		r *ftypes.FactoidResponse
 	)
 	for k, buf := c.First(); k != nil; k, buf = c.Next() {
 		if r, err = UnmarshalFactoidResponse(buf); err != nil {
@@ -250,7 +216,7 @@ func (s *FactoidResponseService) ResponseCount(id uint64) (count int, err error)
 
 // ResponseByIndex Returns the `n`th response associated with the given
 // factoid ID in BoltDB.
-func (s *FactoidResponseService) ResponseByIndex(id uint64, n uint64) (r *pandora.FactoidResponse, err error) {
+func (s *FactoidResponseService) ResponseByIndex(id uint64, n uint64) (r *ftypes.FactoidResponse, err error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return
@@ -276,7 +242,7 @@ func (s *FactoidResponseService) ResponseByIndex(id uint64, n uint64) (r *pandor
 
 // ResponseRange Returns the `count` responses associated with the given
 // factoid ID in BoltDB.
-func (s *FactoidResponseService) ResponseRange(id uint64, startID uint64, count uint64) (responses []*pandora.FactoidResponse, err error) {
+func (s *FactoidResponseService) ResponseRange(id uint64, startID uint64, count uint64) (responses []*ftypes.FactoidResponse, err error) {
 	tx, err := s.DB.Begin(false)
 	if err != nil {
 		return
@@ -287,9 +253,9 @@ func (s *FactoidResponseService) ResponseRange(id uint64, startID uint64, count 
 		b = responseBucket(tx)
 		c = b.Cursor()
 		i = uint64(0)
-		r *pandora.FactoidResponse
+		r *ftypes.FactoidResponse
 	)
-	responses = make([]*pandora.FactoidResponse, 0, count)
+	responses = make([]*ftypes.FactoidResponse, 0, count)
 	for k, buf := c.First(); k != nil; k, buf = c.Next() {
 		if r, err = UnmarshalFactoidResponse(buf); err != nil {
 			return

@@ -1,34 +1,20 @@
 package pandora
 
-import "time"
-
-type FactoidResponse struct {
-	DateCreated time.Time
-	DateEdited  time.Time
-	Response    string
-}
-
-type Factoid struct {
-	ID          uint64
-	DateCreated time.Time
-	DateEdited  time.Time
-	Protected   bool
-	Responses   []*FactoidResponse
-	Trigger     string
-}
+import (
+	"github.com/rjacobs31/pandora-bot/bolt/ftypes"
+)
 
 type DataClient interface {
 	FactoidService
-	RawFactoidService
 }
 
 type RawFactoidService interface {
-	Factoid(id uint64) (*Factoid, error)
-	FactoidByTrigger(trigger string) (*Factoid, error)
-	FactoidRange(fromID, count uint64) (factoids []*Factoid, err error)
-	InsertFactoid(f *Factoid) (id uint64, err error)
-	PutFactoid(id uint64, f *Factoid) error
-	PutFactoidByTrigger(trigger string, f *Factoid) error
+	Factoid(id uint64) (*ftypes.Factoid, error)
+	FactoidByTrigger(trigger string) (*ftypes.Factoid, error)
+	FactoidRange(fromID, count uint64) (factoids []*ftypes.Factoid, err error)
+	InsertFactoid(f *ftypes.Factoid) (id uint64, err error)
+	PutFactoid(id uint64, f *ftypes.Factoid) error
+	PutFactoidByTrigger(trigger string, f *ftypes.Factoid) error
 	DeleteFactoid(id uint64) error
 }
 

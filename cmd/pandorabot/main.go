@@ -10,8 +10,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/namsral/flag"
 
-	pandora "../.."
-	bolt "../../bolt"
+	pandora "github.com/rjacobs31/pandora-bot"
+	"github.com/rjacobs31/pandora-bot/bolt"
 )
 
 // Variables used for command line parameters
@@ -30,10 +30,12 @@ func init() {
 }
 
 func main() {
+	fmt.Println("Application starting")
 	c := bolt.NewClient(DBPath)
 	if err := c.Open(); err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("BoltDB client connected")
 	defer c.Close()
 	Client = c
 
@@ -43,9 +45,11 @@ func main() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
+	fmt.Println("Discord session created")
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
+	fmt.Println("Discord handlers registered")
 
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
@@ -53,6 +57,7 @@ func main() {
 		fmt.Println("error opening connection,", err)
 		return
 	}
+	fmt.Println("Discord connected")
 	defer dg.Close()
 
 	// Wait here until CTRL-C or other term signal is received.

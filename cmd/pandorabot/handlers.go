@@ -9,8 +9,8 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 
-	"../../bolt"
-	"../../interpolate"
+	"github.com/rjacobs31/pandora-bot/bolt"
+	"github.com/rjacobs31/pandora-bot/interpolate"
 )
 
 // CommandType Type of command given to Pandora
