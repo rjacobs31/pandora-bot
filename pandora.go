@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -15,6 +14,11 @@ func main() {
 	config := Config{}
 	flag.StringVar(&config.Token, "token", "", "Discord bot token")
 	flag.Parse()
+
+	if config.Token == "" {
+		log.Fatal("Error: Needs bot token.")
+		return
+	}
 
 	log.Println("Starting Discord client")
 	client, err := chat.New(config.Token)
