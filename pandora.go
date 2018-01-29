@@ -12,16 +12,16 @@ import (
 
 func main() {
 	config := Config{}
-	flag.StringVar(&config.Token, "token", "", "Discord bot token")
+	flag.StringVar(&config.Chat.Token, "token", "", "Discord bot token")
 	flag.Parse()
 
-	if config.Token == "" {
+	if config.Chat.Token == "" {
 		log.Fatal("Error: Needs bot token.")
 		return
 	}
 
 	log.Println("Starting Discord client")
-	client, err := chat.New(config.Token)
+	client, err := chat.New(config.Chat.Token)
 	if err != nil {
 		log.Fatal(err)
 	}
