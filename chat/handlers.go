@@ -1,13 +1,15 @@
 package chat
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/bwmarrin/discordgo"
+)
 
 type ChatClient struct {
 	*discordgo.Session
 }
 
 func New(token string) (client *ChatClient, err error) {
-	dg, err := discordgo.New(token)
+	dg, err := discordgo.New("Bot " + token)
 	client = &ChatClient{dg}
 	return
 }
