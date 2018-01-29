@@ -3,12 +3,13 @@ package chat
 import "github.com/bwmarrin/discordgo"
 
 type ChatClient struct {
-	discordgo.Session
+	*discordgo.Session
 }
 
 func New(token string) (client *ChatClient, err error) {
 	dg, err := discordgo.New(token)
-	return &ChatClient{dg}
+	client = &ChatClient{dg}
+	return
 }
 
 func (c *ChatClient) Start() {
