@@ -2,6 +2,9 @@
 *.swp
 *~
 
+# Config files
+pandora-bot.toml
+
 # Compiled files
 *.exe
 pandora-bot

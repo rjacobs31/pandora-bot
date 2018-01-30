@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -12,8 +11,10 @@ import (
 
 func main() {
 	config := Config{}
-	flag.StringVar(&config.Chat.Token, "token", "", "Discord bot token")
-	flag.Parse()
+	if err := LoadConfig(&config); err != nil {
+		log.Fatalln("Could not load config: %s", err)
+		return
+	}
 
 	if config.Chat.Token == "" {
 		log.Fatal("Error: Needs bot token.")
