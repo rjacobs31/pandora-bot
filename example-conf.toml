@@ -1,0 +1,20 @@
+[chat]
+# Discord bot token
+token = "TOKEN_GOES_HERE"
+
+[db]
+# PostgreSQL
+#type = "postgres"
+#connectionString = "host=myhost user=gorm dbname=gorm sslmode=disable password=mypassword")
+#
+# Microsoft SQL Server
+#type = "mssql"
+#connectionString = "sqlserver://username:password@localhost:1433?database=dbname"
+#
+# MySQL (Connection string has the format "username:password@/db_name")
+#type = "mysql"
+#connectionString = "pandorabot:pandorabotpwd@/pandorabot?charset=utf8&parseTime=True&loc=Local"
+#
+# Sqlite 3
+#type = "sqlite3"
+#connectionString = "/tmp/pandorabot.db"
