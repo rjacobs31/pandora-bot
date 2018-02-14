@@ -10,9 +10,11 @@ import (
 
 type Database struct {
 	*gorm.DB
+
+	FactoidManager FactoidManager
 }
 
-func Initialise(config Config) (db *Database, err error) {
+func InitialiseDB(config Config) (db *Database, err error) {
 	gdb, err := gorm.Open(config.Type, config.ConnectionString)
 	if err != nil {
 		return
@@ -20,6 +22,9 @@ func Initialise(config Config) (db *Database, err error) {
 
 	gdb = db.AutoMigrate(&Remark{}, &Retort{})
 
-	db = &Database{DB: gdb}
+	db = &Database{
+		DB:             gdb,
+		FactoidManager: initialiseFactoidManager(gdb),
+	}
 	return
 }
