@@ -65,34 +65,43 @@ func cleanTrigger(trigger string) (out string) {
 
 // Add attempts to register a Retort for a given Remark.
 func (fm *FactoidManager) Add(remark, retort string) (err error) {
-	var rem Remark
-	fm.db.FirstOrInit(&rem, Remark{Text: cleanTrigger(remark)})
+	rem := Remark{}
+	fm.db.FirstOrCreate(&rem, Remark{Text: cleanTrigger(remark)})
 
-	for _, ret := range rem.Retorts {
-		if ret.Text == retort {
-			return errors.New("Retort already exists")
-		}
+	query := Retort{RemarkID: rem.ID, Text: retort}
+	ret := Retort{}
+	if !fm.db.Where(&query).First(&ret).RecordNotFound() {
+		return errors.New("Retort already exists")
 	}
 
-	rem.Retorts = append(rem.Retorts, Retort{Text: retort})
-	fm.db.Save(&rem)
+	fm.db.Save(&query)
 	return
 }
 
 // Select attempts to find a random Retort for a given Remark.
 func (fm *FactoidManager) Select(remark string) (retort *Retort, err error) {
-	var rem Remark
-	fm.db.Where("text = ?", cleanTrigger(remark)).First(&rem)
-
-	if len(rem.Retorts) == 0 {
+	simplifiedTrigger := cleanTrigger(remark)
+	if simplifiedTrigger == "" {
 		return
 	}
 
-	retort = &rem.Retorts[rand.Intn(len(rem.Retorts))]
+	query := Remark{Text: simplifiedTrigger}
+	rem := Remark{}
+	var retorts []Retort
+	if fm.db.Where(&query).First(&rem).RecordNotFound() {
+		return
+	}
 
-	// Log triggered remark and retort.
+	fm.db.Model(&rem).Related(&retorts)
+	if len(retorts) == 0 {
+		return
+	}
+	retort = &retorts[rand.Intn(len(retorts))]
+
 	rem.TriggerCount += 1
-	retort.TriggerCount += 1
 	fm.db.Save(rem)
+
+	retort.TriggerCount += 1
+	fm.db.Save(retort)
 	return
 }
