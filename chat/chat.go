@@ -22,8 +22,9 @@ func New(token string) (client *ChatClient, err error) {
 	return
 }
 
-func (c *ChatClient) Start() {
+func (c *ChatClient) Start() (err error) {
 	c.session.AddHandler(c.handleIncomingMessage)
+	return c.session.Open()
 }
 
 func (c *ChatClient) Close() {
