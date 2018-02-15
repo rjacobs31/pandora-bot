@@ -50,12 +50,12 @@ func (h *FactoidRegisterHandler) Handle(s *discordgo.Session, m *discordgo.Messa
 var (
 	// botAddressRegex represents the regex for determining
 	// when the user is trying to teach the bot a retort.
-	botAddressRegex = regexp.Compile("^pan(dora)?:\\s*")
+	botAddressRegex, _ = regexp.Compile("^pan(dora)?:\\s*")
 
 	// remarkRegexIs represents whether message content
 	// contains an "is" for the purposes of delimiting
 	// a remark and a retort.
-	remarkRegexIs = regexp.Compile("\\s+is")
+	remarkRegexIs, _ = regexp.Compile("\\s+is")
 )
 
 // extractRetortFromMessage checks whether the user is addressing
