@@ -111,11 +111,11 @@ func (h *RetortHandler) SetNext(newHandler MessageHandler) {
 func (h *RetortHandler) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
 	retort, err := h.fm.Select(m.Content)
 	if err != nil || retort == nil {
-		h.next.Handle(s, m)
+		if h.next != nil {
+			h.next.Handle(s, m)
+		}
 		return
 	}
 
-	if h.next != nil {
-		h.next.Handle(s, m)
-	}
+	s.ChannelMessageSend(m.ChannelID, retort.Text)
 }
