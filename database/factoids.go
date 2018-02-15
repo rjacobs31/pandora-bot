@@ -33,14 +33,15 @@ func (fm *FactoidManager) Add(remark, retort string) (err error) {
 	var rem Remark
 	fm.db.FirstOrInit(&rem, Remark{Text: remark})
 
-	for ret := range rem.Retorts {
+	for _, ret := range rem.Retorts {
 		if ret.Text == retort {
 			return errors.New("Retort already exists")
 		}
 	}
 
-	append(rem.Retorts, Retort{Text: retort})
-	db.Save(&rem)
+	rem.Retorts = append(rem.Retorts, Retort{Text: retort})
+	fm.db.Save(&rem)
+	return
 }
 
 func (fm *FactoidManager) Select(remark string) (retort Retort, err error) {
@@ -51,5 +52,6 @@ func (fm *FactoidManager) Select(remark string) (retort Retort, err error) {
 		return
 	}
 
-	retort = rem.Retorts[rand.Int63n(len(rem.Retorts))]
+	retort = rem.Retorts[rand.Intn(len(rem.Retorts))]
+	return
 }
