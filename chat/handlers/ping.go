@@ -4,6 +4,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// PingHandler verifies that the bot is active, by responding
+// with "Pong!" when a message matching "!ping" is encountered.
 type PingHandler struct {
 	next MessageHandler
 }
