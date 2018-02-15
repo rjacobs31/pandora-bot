@@ -1,8 +1,11 @@
 package database
 
 import (
+	"bytes"
 	"errors"
 	"math/rand"
+	"strings"
+	"unicode"
 
 	"github.com/jinzhu/gorm"
 )
@@ -28,8 +31,35 @@ type FactoidManager struct {
 	db *gorm.DB
 }
 
-func initialiseFactoidManager(db *gorm.DB) FactoidManager {
-	return FactoidManager{db: db}
+func initialiseFactoidManager(db *gorm.DB) (fm FactoidManager) {
+	fm = FactoidManager{db: db}
+	return
+}
+
+// cleanTrigger prepares a trigger trimming spaces, converting
+// to lowercase, and removing special characters.
+func cleanTrigger(trigger string) (out string) {
+	out = strings.ToLower(strings.TrimSpace(trigger))
+	result := bytes.Buffer{}
+
+	// Replace special characters and multiple spaces with a
+	// single space.
+	prev := ' '
+	for _, r := range trigger {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			result.WriteRune(r)
+		} else if unicode.IsSpace(r) || unicode.IsSymbol(r) {
+			r = ' '
+			if prev != ' ' {
+				result.WriteRune(r)
+			}
+		}
+
+		prev = r
+	}
+
+	out = result.String()
+	return
 }
 
 // Add attempts to register a Retort for a given Remark.
