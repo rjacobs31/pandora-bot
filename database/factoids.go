@@ -12,7 +12,7 @@ type Remark struct {
 	gorm.Model
 	Protected    bool
 	TriggerCount int
-	Text         string `gorm:"index"`
+	Text         string `gorm:"unique_index"`
 	Retorts      []Retort
 }
 
