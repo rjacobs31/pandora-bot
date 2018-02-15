@@ -5,7 +5,7 @@ import (
 )
 
 type PingHandler struct {
-	next *MessageHandler
+	next MessageHandler
 }
 
 func (h *PingHandler) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {

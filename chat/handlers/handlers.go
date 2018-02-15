@@ -7,5 +7,5 @@ import (
 // MessageHandler handles incoming messages using chain of responsibility.
 type MessageHandler interface {
 	Handle(s *discordgo.Session, m *discordgo.MessageCreate)
-	SetNext(n *MessageHandler)
+	SetNext(n MessageHandler)
 }
