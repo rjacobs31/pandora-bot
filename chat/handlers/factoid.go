@@ -71,8 +71,8 @@ func extractRetortFromMessage(content string) (remark, retort string) {
 		return
 	}
 
-	strippedContent := content[botAddressIndices[1]:]
-	indicesIs := remarkRegexIs.FindIndex(content)
+	strippedContent := contentBytes[botAddressIndices[1]:]
+	indicesIs := remarkRegexIs.FindIndex(strippedContent)
 	if indicesIs == nil {
 		return
 	}
