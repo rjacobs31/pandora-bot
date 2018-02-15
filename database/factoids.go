@@ -22,6 +22,7 @@ type Remark struct {
 // Retort represents a response to registered user messages.
 type Retort struct {
 	gorm.Model
+	RemarkID     uint
 	TriggerCount int
 	Text         string `gorm:"index"`
 }
