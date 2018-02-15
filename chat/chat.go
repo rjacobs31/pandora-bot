@@ -2,13 +2,9 @@ package chat
 
 import (
 	"github.com/bwmarrin/discordgo"
-)
 
-// MessageHandler handles incoming messages using chain of responsibility.
-type MessageHandler interface {
-	Handle(s *discordgo.Session, m *discordgo.MessageCreate)
-	SetNext(n *MessageHandler)
-}
+	"github.com/rjacobs31/pandora-bot/chat/handlers"
+)
 
 type ChatClient struct {
 	session *discordgo.Session
@@ -50,8 +46,7 @@ func (c *ChatClient) handleIncomingMessage(s *discordgo.Session, m *discordgo.Me
 		return
 	}
 
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
+	if len(c.messageHandlers) > 0 {
+		c.messageHandlers[0].Handle(s, m)
 	}
 }

@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"github.com/bwmarrin/discordgo"
-
-	"github.com/rjacobs31/pandora-bot/chat"
 )
 
 type PingHandler struct {
