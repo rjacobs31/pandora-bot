@@ -85,7 +85,7 @@ func LoadFileConfig(configFile string, config *Config) error {
 		return err
 	}
 
-	if _, err := toml.DecodeFile(configFile, &config); err != nil {
+	if _, err := toml.DecodeFile(configFile, config); err != nil {
 		return err
 	}
 
