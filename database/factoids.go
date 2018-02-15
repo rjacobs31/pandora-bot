@@ -40,13 +40,13 @@ func initialiseFactoidManager(db *gorm.DB) (fm FactoidManager) {
 // cleanTrigger prepares a trigger trimming spaces, converting
 // to lowercase, and removing special characters.
 func cleanTrigger(trigger string) (out string) {
-	out = strings.ToLower(strings.TrimSpace(trigger))
+	simplifiedString := strings.ToLower(strings.TrimSpace(trigger))
 	result := bytes.Buffer{}
 
 	// Replace special characters and multiple spaces with a
 	// single space.
 	prev := ' '
-	for _, r := range trigger {
+	for _, r := range simplifiedString {
 		if unicode.IsLetter(r) || unicode.IsDigit(r) {
 			result.WriteRune(r)
 		} else if unicode.IsSpace(r) || unicode.IsSymbol(r) {
