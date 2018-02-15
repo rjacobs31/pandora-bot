@@ -3,23 +3,27 @@ package chat
 import (
 	"github.com/bwmarrin/discordgo"
 
-	"github.com/rjacobs31/pandora-bot/chat/handlers"
+	pbot "github.com/rjacobs31/pandora-bot/chat/handlers"
 )
 
 type ChatClient struct {
 	session *discordgo.Session
 
-	messageHandlers []MessageHandler
+	messageHandlers []pbot.MessageHandler
 }
 
 func New(token string) (client *ChatClient, err error) {
 	dg, err := discordgo.New("Bot " + token)
-	client = &ChatClient{dg}
+	if err != nil {
+		return
+	}
+
+	client = &ChatClient{session: dg}
 	return
 }
 
 func (c *ChatClient) Start() {
-	c.session.AddHandler(handleIncomingMessage)
+	c.session.AddHandler(c.handleIncomingMessage)
 }
 
 func (c *ChatClient) Close() {
@@ -28,13 +32,13 @@ func (c *ChatClient) Close() {
 
 // AddHandler appends a handler to the list of handlers in the
 // chain of responsibility.
-func (c *ChatClient) AddHandler(newHandler MessageHandler) {
+func (c *ChatClient) AddHandler(newHandler pbot.MessageHandler) {
 	oldLen := len(c.messageHandlers)
 	if oldLen > 0 {
 		c.messageHandlers[oldLen-1].SetNext(newHandler)
 	}
 
-	append(c.messageHandlers, newHandler)
+	c.messageHandlers = append(c.messageHandlers, newHandler)
 }
 
 // messageCreate will be called (by AddHandler) every time a new
