@@ -36,3 +36,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Pong!")
 	}
 }
+
+// MessageHandler handles incoming messages using chain of responsibility.
+type MessageHandler interface {
+	Handle(s *discordgo.Session, m *discordgo.MessageCreate)
+	SetNext(n *MessageHandler)
+}
