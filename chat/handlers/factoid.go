@@ -16,6 +16,10 @@ type FactoidRegisterHandler struct {
 	next MessageHandler
 }
 
+func NewFactoidRegisterHandler(fm *database.FactoidManager) (handler FactoidRegisterHandler) {
+	return &FactoidRegisterHandler{fm: fm}
+}
+
 // SetNext sets the next handler in the chain, after this
 // FactoidRegisterHandler.
 func (h *FactoidRegisterHandler) SetNext(newHandler MessageHandler) {
@@ -83,6 +87,10 @@ func extractRetortFromMessage(content string) (remark, retort string) {
 type RetortHandler struct {
 	fm   *database.FactoidManager
 	next MessageHandler
+}
+
+func NewRetortHandler(fm *database.FactoidManager) (handler FactoidRegisterHandler) {
+	return &FactoidRetortHandler{fm: fm}
 }
 
 // SetNext sets the next handler in the chain, after this RetortHandler.
