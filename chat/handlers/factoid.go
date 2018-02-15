@@ -16,7 +16,7 @@ type FactoidRegisterHandler struct {
 	next MessageHandler
 }
 
-func NewFactoidRegisterHandler(fm *database.FactoidManager) (handler FactoidRegisterHandler) {
+func NewFactoidRegisterHandler(fm *database.FactoidManager) (handler *FactoidRegisterHandler) {
 	return &FactoidRegisterHandler{fm: fm}
 }
 
@@ -89,8 +89,8 @@ type RetortHandler struct {
 	next MessageHandler
 }
 
-func NewRetortHandler(fm *database.FactoidManager) (handler FactoidRegisterHandler) {
-	return &FactoidRetortHandler{fm: fm}
+func NewRetortHandler(fm *database.FactoidManager) (handler *RetortHandler) {
+	return &RetortHandler{fm: fm}
 }
 
 // SetNext sets the next handler in the chain, after this RetortHandler.
