@@ -8,6 +8,7 @@ import (
 
 	"github.com/rjacobs31/pandora-bot/chat"
 	"github.com/rjacobs31/pandora-bot/chat/handlers"
+	"github.com/rjacobs31/pandora-bot/database"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 	}
 
 	log.Println("Adding message handlers")
-	InitHandlers(client)
+	InitHandlers(client, config)
 
 	log.Println("Opening Discord connection")
 	client.Start()
@@ -51,6 +52,14 @@ func main() {
 	<-sc
 }
 
-func InitHandlers(c *chat.ChatClient) {
+func InitHandlers(c *chat.ChatClient, config Config) {
 	c.AddHandler(new(handlers.PingHandler))
+
+	db, err := database.InitialiseDB(config.Database)
+	if err != nil {
+		return
+	}
+
+	c.AddHandler(handlers.NewFactoidRegisterHandler(&db.FactoidManager))
+	c.AddHandler(handlers.NewRetortHandler(&db.FactoidManager))
 }
