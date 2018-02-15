@@ -18,7 +18,10 @@ func New(token string) (client *ChatClient, err error) {
 		return
 	}
 
-	client = &ChatClient{session: dg}
+	client = &ChatClient{
+		session: dg,
+	}
+
 	return
 }
 
@@ -34,8 +37,7 @@ func (c *ChatClient) Close() {
 // AddHandler appends a handler to the list of handlers in the
 // chain of responsibility.
 func (c *ChatClient) AddHandler(newHandler pbot.MessageHandler) {
-	oldLen := len(c.messageHandlers)
-	if oldLen > 0 {
+	if oldLen := len(c.messageHandlers); oldLen > 0 {
 		c.messageHandlers[oldLen-1].SetNext(newHandler)
 	}
 
