@@ -58,5 +58,10 @@ func (fm *FactoidManager) Select(remark string) (retort Retort, err error) {
 	}
 
 	retort = rem.Retorts[rand.Intn(len(rem.Retorts))]
+
+	// Log triggered remark and retort.
+	rem.TriggerCount += 1
+	retort.TriggerCount += 1
+	fm.db.Save(rem)
 	return
 }
