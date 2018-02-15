@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -32,9 +33,14 @@ func LoadConfig(config *Config) error {
 		return errors.New("Invalid config pointer passed to LoadConfig()")
 	}
 
-	if LoadFileConfig(configDirName+".toml", config) != nil {
+	if err := LoadFileConfig(configDirName+".toml", config); err != nil {
+		log.Println("Loading local file failed")
 		if defaultDir, err := GetDefaultConfigDir(); err == nil {
-			LoadFileConfig(defaultDir, config)
+			path := filepath.Join(defaultDir, "config.toml")
+			err := LoadFileConfig(path, config)
+			if err != nil {
+				log.Println("Loading default file location failed")
+			}
 		}
 	}
 
