@@ -17,8 +17,8 @@ import (
 
 // Config represents the collected settings for the app.
 type Config struct {
-	Chat     chat.Config
-	Database database.Config
+	Chat     chat.Config     `toml:"chat"`
+	Database database.Config `toml:"db"`
 }
 
 // LoadConfig attempts to load configuration from all supported
