@@ -8,6 +8,10 @@ type PingHandler struct {
 	next MessageHandler
 }
 
+func (h *PingHandler) SetNext(newHandler MessageHandler) {
+	h.next = newHandler
+}
+
 func (h *PingHandler) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "ping" reply with "Pong!"
 	if m.Content == "ping" {
