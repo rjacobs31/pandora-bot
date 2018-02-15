@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"github.com/rjacobs31/pandora-bot/chat"
+	"github.com/rjacobs31/pandora-bot/chat/handlers"
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	InitHandlers(c)
 	client.Start()
 
 	log.Println("Opening Discord connection")
@@ -45,4 +47,8 @@ func main() {
 	)
 	log.Println("Bot running. Press Ctrl+C to exit.")
 	<-sc
+}
+
+func InitHandlers(c *ChatClient) {
+	c.AddHandler(new(handlers.PingHandler))
 }
