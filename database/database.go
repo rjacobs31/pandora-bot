@@ -9,7 +9,7 @@ import (
 )
 
 type Database struct {
-	*gorm.DB
+	DB *gorm.DB
 
 	FactoidManager FactoidManager
 }
@@ -20,7 +20,7 @@ func InitialiseDB(config Config) (db *Database, err error) {
 		return
 	}
 
-	gdb = db.AutoMigrate(&Remark{}, &Retort{})
+	gdb = gdb.AutoMigrate(&Remark{}, &Retort{})
 
 	db = &Database{
 		DB:             gdb,
