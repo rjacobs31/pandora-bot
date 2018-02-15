@@ -65,7 +65,7 @@ func cleanTrigger(trigger string) (out string) {
 // Add attempts to register a Retort for a given Remark.
 func (fm *FactoidManager) Add(remark, retort string) (err error) {
 	var rem Remark
-	fm.db.FirstOrInit(&rem, Remark{Text: remark})
+	fm.db.FirstOrInit(&rem, Remark{Text: cleanTrigger(remark)})
 
 	for _, ret := range rem.Retorts {
 		if ret.Text == retort {
@@ -81,7 +81,7 @@ func (fm *FactoidManager) Add(remark, retort string) (err error) {
 // Select attempts to find a random Retort for a given Remark.
 func (fm *FactoidManager) Select(remark string) (retort Retort, err error) {
 	var rem Remark
-	fm.db.Where("text = ?", remark).First(&rem)
+	fm.db.Where("text = ?", cleanTrigger(remark)).First(&rem)
 
 	if len(rem.Retorts) == 0 {
 		return
