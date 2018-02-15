@@ -27,11 +27,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	InitHandlers(c)
-	client.Start()
+
+	log.Println("Adding message handlers")
+	InitHandlers(client)
 
 	log.Println("Opening Discord connection")
-	err = client.Open()
+	client.Start()
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +51,6 @@ func main() {
 	<-sc
 }
 
-func InitHandlers(c *ChatClient) {
+func InitHandlers(c *chat.ChatClient) {
 	c.AddHandler(new(handlers.PingHandler))
 }
