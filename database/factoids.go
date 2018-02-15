@@ -79,7 +79,7 @@ func (fm *FactoidManager) Add(remark, retort string) (err error) {
 }
 
 // Select attempts to find a random Retort for a given Remark.
-func (fm *FactoidManager) Select(remark string) (retort Retort, err error) {
+func (fm *FactoidManager) Select(remark string) (retort *Retort, err error) {
 	var rem Remark
 	fm.db.Where("text = ?", cleanTrigger(remark)).First(&rem)
 
