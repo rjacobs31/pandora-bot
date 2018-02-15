@@ -14,7 +14,7 @@ func (h *PingHandler) SetNext(newHandler MessageHandler) {
 
 func (h *PingHandler) Handle(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
+	if m.Content == "!ping" {
 		s.ChannelMessageSend(m.ChannelID, "Pong!")
 		return
 	}
