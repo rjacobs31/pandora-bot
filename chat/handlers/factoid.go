@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -45,6 +46,7 @@ func (h *FactoidRegisterHandler) Handle(s *discordgo.Session, m *discordgo.Messa
 	}
 
 	h.fm.Add(remark, retort)
+	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Okay, remembering that %q is %q.", remark, retort))
 }
 
 var (
