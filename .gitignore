@@ -7,4 +7,5 @@ pandora-bot.toml
 
 # Compiled files
 *.exe
+*.sqlite3
 pandora-bot
