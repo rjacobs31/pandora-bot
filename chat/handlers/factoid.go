@@ -3,7 +3,6 @@ package handlers
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -54,6 +53,10 @@ var (
 	// when the user is trying to teach the bot a retort.
 	botAddressRegex, _ = regexp.Compile("^pan(dora)?:\\s*")
 
+	// remarkRegexReply represents a message attempting to teach
+	// the bot a complex query.
+	remarkRegexReply, _ = regexp.Compile("\\s*<reply>")
+
 	// remarkRegexIs represents whether message content
 	// contains an "is" for the purposes of delimiting
 	// a remark and a retort.
@@ -74,12 +77,28 @@ func extractRetortFromMessage(content string) (remark, retort string) {
 	}
 
 	strippedContent := contentBytes[botAddressIndices[1]:]
-	indicesIs := remarkRegexIs.FindIndex(strippedContent)
-	if indicesIs == nil {
-		return
+	if indices := remarkRegexReply.FindIndex(strippedContent); indices != nil {
+		return extractReplyRetort(strippedContent, indices)
+	} else if indices := remarkRegexIs.FindIndex(strippedContent); indices != nil {
+		return extractIsRetort(strippedContent, indices)
 	}
-
-	remark = string(strippedContent[:indicesIs[0]])
-	retort = strings.TrimSpace(string(strippedContent))
 	return
+}
+
+// extractReplyRetort extracts a remark-retort pair when the content is known
+// to be of the complex reply type.
+//
+// Everything before the matched expression is the remark and everything
+// after the matched expression is the retort.
+func extractReplyRetort(content []byte, indices []int) (remark, retort string) {
+	return string(content[:indices[0]]), string(content[indices[1]:])
+}
+
+// extractIsRetort extracts a remark-retort pair when the content is known
+// to be of the simple "is" type.
+//
+// Everything before the matched expression is the remark and the entire
+// string (including the beginning) is the retort.
+func extractIsRetort(content []byte, indices []int) (remark, retort string) {
+	return string(content[:indices[0]]), string(content[:])
 }
