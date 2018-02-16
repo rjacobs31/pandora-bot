@@ -54,6 +54,7 @@ func main() {
 
 func InitHandlers(c *chat.ChatClient, config Config) {
 	c.AddHandler(new(handlers.PingHandler))
+	c.AddHandler(new(handlers.BananaLoveHandler))
 
 	db, err := database.InitialiseDB(config.Database)
 	if err != nil {
